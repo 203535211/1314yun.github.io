@@ -1,42 +1,42 @@
-2025-12-28T17:15:34.365828Z	Cloning repository...
-2025-12-28T17:15:35.08333Z	From https://github.com/203535211/Cloudflare-File
-2025-12-28T17:15:35.083769Z	 * branch            3cce198942b4e9803ce5dc8dd4dc0234b9e50635 -> FETCH_HEAD
-2025-12-28T17:15:35.083904Z	
-2025-12-28T17:15:35.113764Z	HEAD is now at 3cce198 Automated push from web uploader
-2025-12-28T17:15:35.114375Z	
-2025-12-28T17:15:35.180806Z	
-2025-12-28T17:15:35.181503Z	Using v2 root directory strategy
-2025-12-28T17:15:35.201589Z	Success: Finished cloning repository files
-2025-12-28T17:15:37.003296Z	Checking for configuration in a Wrangler configuration file (BETA)
-2025-12-28T17:15:37.004058Z	
-2025-12-28T17:15:38.104873Z	No wrangler.toml file found. Continuing.
-2025-12-28T17:15:38.171754Z	Detected the following tools from environment: npm@10.9.2, nodejs@22.16.0
-2025-12-28T17:15:38.172388Z	Installing project dependencies: npm install --progress=false
-2025-12-28T17:15:55.140242Z	npm error code ERESOLVE
-2025-12-28T17:15:55.140695Z	npm error ERESOLVE unable to resolve dependency tree
-2025-12-28T17:15:55.140858Z	npm error
-2025-12-28T17:15:55.140985Z	npm error While resolving: filecodebox-cf@1.0.0
-2025-12-28T17:15:55.141092Z	npm error Found: vite@7.3.0
-2025-12-28T17:15:55.14119Z	npm error node_modules/vite
-2025-12-28T17:15:55.141283Z	npm error   dev vite@"^7.1.7" from the root project
-2025-12-28T17:15:55.141454Z	npm error
-2025-12-28T17:15:55.141559Z	npm error Could not resolve dependency:
-2025-12-28T17:15:55.141656Z	npm error peer vite@"^4.0.0 || ^5.0.0" from @builder.io/vite-plugin-jsx-loc@0.1.1
-2025-12-28T17:15:55.14176Z	npm error node_modules/@builder.io/vite-plugin-jsx-loc
-2025-12-28T17:15:55.141855Z	npm error   dev @builder.io/vite-plugin-jsx-loc@"^0.1.1" from the root project
-2025-12-28T17:15:55.141977Z	npm error
-2025-12-28T17:15:55.142122Z	npm error Fix the upstream dependency conflict, or retry
-2025-12-28T17:15:55.142229Z	npm error this command with --force or --legacy-peer-deps
-2025-12-28T17:15:55.142456Z	npm error to accept an incorrect (and potentially broken) dependency resolution.
-2025-12-28T17:15:55.142594Z	npm error
-2025-12-28T17:15:55.142846Z	npm error
-2025-12-28T17:15:55.143088Z	npm error For a full report see:
-2025-12-28T17:15:55.143198Z	npm error /opt/buildhome/.npm/_logs/2025-12-28T17_15_38_538Z-eresolve-report.txt
-2025-12-28T17:15:55.143315Z	npm error A complete log of this run can be found in: /opt/buildhome/.npm/_logs/2025-12-28T17_15_38_538Z-debug-0.log
-2025-12-28T17:15:55.172703Z	Error: Exit with error code: 1
-2025-12-28T17:15:55.172961Z	    at ChildProcess.<anonymous> (/snapshot/dist/run-build.js)
-2025-12-28T17:15:55.173116Z	    at Object.onceWrapper (node:events:652:26)
-2025-12-28T17:15:55.17328Z	    at ChildProcess.emit (node:events:537:28)
-2025-12-28T17:15:55.17347Z	    at ChildProcess._handle.onexit (node:internal/child_process:291:12)
-2025-12-28T17:15:55.185329Z	Failed: build command exited with code: 1
-2025-12-28T17:15:56.388737Z	Failed: error occurred while running build command
+2025-12-28T17:18:13.034426Z	Cloning repository...
+2025-12-28T17:18:13.808731Z	From https://github.com/203535211/Cloudflare-File
+2025-12-28T17:18:13.80927Z	 * branch            60ed59b4cf6b2d9e899862d40be8ef28f611c335 -> FETCH_HEAD
+2025-12-28T17:18:13.80937Z	
+2025-12-28T17:18:13.842327Z	HEAD is now at 60ed59b Automated push from web uploader
+2025-12-28T17:18:13.842739Z	
+2025-12-28T17:18:13.920824Z	
+2025-12-28T17:18:13.921674Z	Using v2 root directory strategy
+2025-12-28T17:18:13.946545Z	Success: Finished cloning repository files
+2025-12-28T17:18:15.73353Z	Checking for configuration in a Wrangler configuration file (BETA)
+2025-12-28T17:18:15.734348Z	
+2025-12-28T17:18:16.831249Z	No wrangler.toml file found. Continuing.
+2025-12-28T17:18:16.901549Z	Detected the following tools from environment: npm@10.9.2, nodejs@22.16.0
+2025-12-28T17:18:16.902523Z	Installing project dependencies: npm install --progress=false
+2025-12-28T17:18:34.550617Z	npm error code ERESOLVE
+2025-12-28T17:18:34.550977Z	npm error ERESOLVE unable to resolve dependency tree
+2025-12-28T17:18:34.551608Z	npm error
+2025-12-28T17:18:34.551752Z	npm error While resolving: filecodebox-cf@1.0.0
+2025-12-28T17:18:34.551867Z	npm error Found: vite@7.3.0
+2025-12-28T17:18:34.551973Z	npm error node_modules/vite
+2025-12-28T17:18:34.55208Z	npm error   dev vite@"^7.1.7" from the root project
+2025-12-28T17:18:34.552251Z	npm error
+2025-12-28T17:18:34.5524Z	npm error Could not resolve dependency:
+2025-12-28T17:18:34.552514Z	npm error peer vite@"^4.0.0 || ^5.0.0" from @builder.io/vite-plugin-jsx-loc@0.1.1
+2025-12-28T17:18:34.552616Z	npm error node_modules/@builder.io/vite-plugin-jsx-loc
+2025-12-28T17:18:34.552717Z	npm error   dev @builder.io/vite-plugin-jsx-loc@"^0.1.1" from the root project
+2025-12-28T17:18:34.552829Z	npm error
+2025-12-28T17:18:34.552933Z	npm error Fix the upstream dependency conflict, or retry
+2025-12-28T17:18:34.55303Z	npm error this command with --force or --legacy-peer-deps
+2025-12-28T17:18:34.553128Z	npm error to accept an incorrect (and potentially broken) dependency resolution.
+2025-12-28T17:18:34.553471Z	npm error
+2025-12-28T17:18:34.553634Z	npm error
+2025-12-28T17:18:34.55376Z	npm error For a full report see:
+2025-12-28T17:18:34.553868Z	npm error /opt/buildhome/.npm/_logs/2025-12-28T17_18_17_298Z-eresolve-report.txt
+2025-12-28T17:18:34.553982Z	npm error A complete log of this run can be found in: /opt/buildhome/.npm/_logs/2025-12-28T17_18_17_298Z-debug-0.log
+2025-12-28T17:18:34.585254Z	Error: Exit with error code: 1
+2025-12-28T17:18:34.585795Z	    at ChildProcess.<anonymous> (/snapshot/dist/run-build.js)
+2025-12-28T17:18:34.585926Z	    at Object.onceWrapper (node:events:652:26)
+2025-12-28T17:18:34.585996Z	    at ChildProcess.emit (node:events:537:28)
+2025-12-28T17:18:34.58607Z	    at ChildProcess._handle.onexit (node:internal/child_process:291:12)
+2025-12-28T17:18:34.595869Z	Failed: build command exited with code: 1
+2025-12-28T17:18:35.745791Z	Failed: error occurred while running build command
