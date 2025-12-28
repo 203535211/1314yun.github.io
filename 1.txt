@@ -1,166 +1,42 @@
-2025-12-28T11:50:50.074785Z	Cloning repository...
-2025-12-28T11:50:50.8341Z	From https://github.com/203535211/Cloudflare-File
-2025-12-28T11:50:50.834548Z	 * branch            2e5fff16413b07662156700f1c9281a3579d4881 -> FETCH_HEAD
-2025-12-28T11:50:50.834732Z	
-2025-12-28T11:50:50.868842Z	HEAD is now at 2e5fff1 Automated push from web uploader
-2025-12-28T11:50:50.86927Z	
-2025-12-28T11:50:50.938517Z	
-2025-12-28T11:50:50.939201Z	Using v2 root directory strategy
-2025-12-28T11:50:50.959944Z	Success: Finished cloning repository files
-2025-12-28T11:50:52.675443Z	Checking for configuration in a Wrangler configuration file (BETA)
-2025-12-28T11:50:52.676203Z	
-2025-12-28T11:50:52.677443Z	Found wrangler.toml file. Reading build configuration...
-2025-12-28T11:50:52.683803Z	pages_build_output_dir: dist/public
-2025-12-28T11:50:52.683981Z	Build environment variables: 
-2025-12-28T11:50:52.684119Z	  - NODE_ENV: production
-2025-12-28T11:50:53.773057Z	Successfully read wrangler.toml file.
-2025-12-28T11:50:53.83694Z	Detected the following tools from environment: pnpm@10.11.1, nodejs@22.16.0
-2025-12-28T11:50:54.118826Z	! Corepack is about to download https://registry.npmjs.org/pnpm/-/pnpm-10.4.1.tgz
-2025-12-28T11:50:55.232106Z	Installing project dependencies: pnpm install
-2025-12-28T11:50:55.823339Z	Lockfile is up to date, resolution step is skipped
-2025-12-28T11:50:55.90096Z	Progress: resolved 1, reused 0, downloaded 0, added 0
-2025-12-28T11:50:55.997789Z	Packages: +753
-2025-12-28T11:50:55.998102Z	++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-2025-12-28T11:50:56.901748Z	Progress: resolved 753, reused 0, downloaded 55, added 46
-2025-12-28T11:50:57.905322Z	Progress: resolved 753, reused 0, downloaded 214, added 204
-2025-12-28T11:50:58.905267Z	Progress: resolved 753, reused 0, downloaded 276, added 264
-2025-12-28T11:50:59.905248Z	Progress: resolved 753, reused 0, downloaded 337, added 333
-2025-12-28T11:51:00.905053Z	Progress: resolved 753, reused 0, downloaded 543, added 538
-2025-12-28T11:51:01.905106Z	Progress: resolved 753, reused 0, downloaded 716, added 705
-2025-12-28T11:51:02.906319Z	Progress: resolved 753, reused 0, downloaded 753, added 752
-2025-12-28T11:51:03.00405Z	Progress: resolved 753, reused 0, downloaded 753, added 753, done
-2025-12-28T11:51:03.301459Z	
-2025-12-28T11:51:03.301802Z	dependencies:
-2025-12-28T11:51:03.302002Z	+ @aws-sdk/client-s3 3.907.0
-2025-12-28T11:51:03.302139Z	+ @aws-sdk/s3-request-presigner 3.907.0
-2025-12-28T11:51:03.302265Z	+ @hookform/resolvers 5.2.2
-2025-12-28T11:51:03.302394Z	+ @radix-ui/react-accordion 1.2.12
-2025-12-28T11:51:03.302674Z	+ @radix-ui/react-alert-dialog 1.1.15
-2025-12-28T11:51:03.302884Z	+ @radix-ui/react-aspect-ratio 1.1.7
-2025-12-28T11:51:03.303064Z	+ @radix-ui/react-avatar 1.1.10
-2025-12-28T11:51:03.303261Z	+ @radix-ui/react-checkbox 1.3.3
-2025-12-28T11:51:03.303413Z	+ @radix-ui/react-collapsible 1.1.12
-2025-12-28T11:51:03.303605Z	+ @radix-ui/react-context-menu 2.2.16
-2025-12-28T11:51:03.303706Z	+ @radix-ui/react-dialog 1.1.15
-2025-12-28T11:51:03.303769Z	+ @radix-ui/react-dropdown-menu 2.1.16
-2025-12-28T11:51:03.303993Z	+ @radix-ui/react-hover-card 1.1.15
-2025-12-28T11:51:03.304165Z	+ @radix-ui/react-label 2.1.7
-2025-12-28T11:51:03.304347Z	+ @radix-ui/react-menubar 1.1.16
-2025-12-28T11:51:03.304488Z	+ @radix-ui/react-navigation-menu 1.2.14
-2025-12-28T11:51:03.304637Z	+ @radix-ui/react-popover 1.1.15
-2025-12-28T11:51:03.304745Z	+ @radix-ui/react-progress 1.1.7
-2025-12-28T11:51:03.304897Z	+ @radix-ui/react-radio-group 1.3.8
-2025-12-28T11:51:03.305001Z	+ @radix-ui/react-scroll-area 1.2.10
-2025-12-28T11:51:03.305171Z	+ @radix-ui/react-select 2.2.6
-2025-12-28T11:51:03.305292Z	+ @radix-ui/react-separator 1.1.7
-2025-12-28T11:51:03.305395Z	+ @radix-ui/react-slider 1.3.6
-2025-12-28T11:51:03.305543Z	+ @radix-ui/react-slot 1.2.3
-2025-12-28T11:51:03.305705Z	+ @radix-ui/react-switch 1.2.6
-2025-12-28T11:51:03.305823Z	+ @radix-ui/react-tabs 1.1.13
-2025-12-28T11:51:03.305971Z	+ @radix-ui/react-toggle 1.1.10
-2025-12-28T11:51:03.306133Z	+ @radix-ui/react-toggle-group 1.1.11
-2025-12-28T11:51:03.306283Z	+ @radix-ui/react-tooltip 1.2.8
-2025-12-28T11:51:03.306383Z	+ @tanstack/react-query 5.90.2
-2025-12-28T11:51:03.306553Z	+ @trpc/client 11.6.0
-2025-12-28T11:51:03.306695Z	+ @trpc/react-query 11.6.0
-2025-12-28T11:51:03.306792Z	+ @trpc/server 11.6.0
-2025-12-28T11:51:03.306898Z	+ axios 1.12.2
-2025-12-28T11:51:03.307019Z	+ class-variance-authority 0.7.1
-2025-12-28T11:51:03.307407Z	+ clsx 2.1.1
-2025-12-28T11:51:03.307542Z	+ cmdk 1.1.1
-2025-12-28T11:51:03.307647Z	+ cookie 1.0.2
-2025-12-28T11:51:03.307741Z	+ date-fns 4.1.0
-2025-12-28T11:51:03.307837Z	+ dotenv 17.2.3
-2025-12-28T11:51:03.308036Z	+ drizzle-orm 0.44.6
-2025-12-28T11:51:03.308159Z	+ embla-carousel-react 8.6.0
-2025-12-28T11:51:03.308259Z	+ express 4.21.2
-2025-12-28T11:51:03.308363Z	+ framer-motion 12.23.22
-2025-12-28T11:51:03.308462Z	+ input-otp 1.4.2
-2025-12-28T11:51:03.30859Z	+ jose 6.1.0
-2025-12-28T11:51:03.308698Z	+ lucide-react 0.453.0
-2025-12-28T11:51:03.308813Z	+ mysql2 3.15.1
-2025-12-28T11:51:03.308925Z	+ nanoid 5.1.6
-2025-12-28T11:51:03.309031Z	+ next-themes 0.4.6
-2025-12-28T11:51:03.30914Z	+ react 19.2.1
-2025-12-28T11:51:03.309244Z	+ react-day-picker 9.11.1
-2025-12-28T11:51:03.309335Z	+ react-dom 19.2.1
-2025-12-28T11:51:03.30944Z	+ react-hook-form 7.64.0
-2025-12-28T11:51:03.309549Z	+ react-resizable-panels 3.0.6
-2025-12-28T11:51:03.309781Z	+ recharts 2.15.4
-2025-12-28T11:51:03.309926Z	+ sonner 2.0.7
-2025-12-28T11:51:03.310031Z	+ streamdown 1.4.0
-2025-12-28T11:51:03.310129Z	+ superjson 1.13.3
-2025-12-28T11:51:03.310251Z	+ tailwind-merge 3.3.1
-2025-12-28T11:51:03.310404Z	+ tailwindcss-animate 1.0.7
-2025-12-28T11:51:03.310486Z	+ vaul 1.1.2
-2025-12-28T11:51:03.310618Z	+ wouter 3.7.1
-2025-12-28T11:51:03.310696Z	+ zod 4.1.12
-2025-12-28T11:51:03.31083Z	
-2025-12-28T11:51:03.310936Z	devDependencies:
-2025-12-28T11:51:03.31105Z	+ @builder.io/vite-plugin-jsx-loc 0.1.1
-2025-12-28T11:51:03.311122Z	+ @cloudflare/workers-types 4.20251228.0
-2025-12-28T11:51:03.311177Z	+ @tailwindcss/typography 0.5.19
-2025-12-28T11:51:03.311249Z	+ @tailwindcss/vite 4.1.14
-2025-12-28T11:51:03.311305Z	+ @types/express 4.17.21
-2025-12-28T11:51:03.311359Z	+ @types/google.maps 3.58.1
-2025-12-28T11:51:03.311412Z	+ @types/node 24.7.0
-2025-12-28T11:51:03.311463Z	+ @types/react 19.2.1
-2025-12-28T11:51:03.311781Z	+ @types/react-dom 19.2.1
-2025-12-28T11:51:03.311862Z	+ @vitejs/plugin-react 5.0.4
-2025-12-28T11:51:03.311926Z	+ add 2.0.6
-2025-12-28T11:51:03.311992Z	+ autoprefixer 10.4.21
-2025-12-28T11:51:03.312053Z	+ drizzle-kit 0.31.5
-2025-12-28T11:51:03.312117Z	+ esbuild 0.25.10
-2025-12-28T11:51:03.31217Z	+ pnpm 10.18.0
-2025-12-28T11:51:03.312231Z	+ postcss 8.5.6
-2025-12-28T11:51:03.312293Z	+ prettier 3.6.2
-2025-12-28T11:51:03.312348Z	+ tailwindcss 4.1.14
-2025-12-28T11:51:03.312401Z	+ tsx 4.20.6
-2025-12-28T11:51:03.312455Z	+ tw-animate-css 1.4.0
-2025-12-28T11:51:03.312557Z	+ typescript 5.9.3
-2025-12-28T11:51:03.312628Z	+ vite 7.1.9
-2025-12-28T11:51:03.312767Z	+ vite-plugin-manus-runtime 0.0.57
-2025-12-28T11:51:03.312925Z	+ vitest 2.1.9
-2025-12-28T11:51:03.313033Z	
-2025-12-28T11:51:03.313292Z	╭ Warning ─────────────────────────────────────────────────────────────────────╮│                                                                              ││   Ignored build scripts: @tailwindcss/oxide, esbuild.                        ││   Run "pnpm approve-builds" to pick which dependencies should be allowed     ││   to run scripts.                                                            ││                                                                              │╰──────────────────────────────────────────────────────────────────────────────╯
-2025-12-28T11:51:03.313461Z	
-2025-12-28T11:51:03.350972Z	Done in 7.8s using pnpm v10.4.1
-2025-12-28T11:51:03.383767Z	Executing user command: pnpm build
-2025-12-28T11:51:03.944924Z	
-2025-12-28T11:51:03.945171Z	> filecodebox-cf@1.0.0 build /opt/buildhome/repo
-2025-12-28T11:51:03.945295Z	> vite build
-2025-12-28T11:51:03.94543Z	
-2025-12-28T11:51:04.418766Z	[36mvite v7.1.9 [32mbuilding for production...[36m[39m
-2025-12-28T11:51:04.466359Z	[33m[1m(!) %VITE_ANALYTICS_ENDPOINT% is not defined in env variables found in /index.html. Is the variable mistyped?[22m[39m
-2025-12-28T11:51:04.466893Z	[33m[1m(!) %VITE_ANALYTICS_WEBSITE_ID% is not defined in env variables found in /index.html. Is the variable mistyped?[22m[39m
-2025-12-28T11:51:04.481062Z	<script src="%VITE_ANALYTICS_ENDPOINT%/umami"> in "/index.html" can't be bundled without type="module" attribute
-2025-12-28T11:51:04.504956Z	transforming...
-2025-12-28T11:51:04.945167Z	[32m✓[39m 57 modules transformed.
-2025-12-28T11:51:04.954138Z	[31m✗[39m Build failed in 499ms
-2025-12-28T11:51:04.954385Z	[31merror during build:
-2025-12-28T11:51:04.95455Z	[31m[vite:esbuild] Transform failed with 1 error:
-2025-12-28T11:51:04.95471Z	/opt/buildhome/repo/client/src/pages/Admin.tsx:119:140: ERROR: The character ">" is not valid inside a JSX element[31m
-2025-12-28T11:51:04.954839Z	file: [36m/opt/buildhome/repo/client/src/pages/Admin.tsx:119:140[31m
-2025-12-28T11:51:04.954963Z	[33m
-2025-12-28T11:51:04.955088Z	[33mThe character ">" is not valid inside a JSX element[33m
-2025-12-28T11:51:04.955201Z	117 |                  <ol data-loc="client/src/pages/Admin.tsx:117" className="text-sm text-red-700 dark:text-red-300 list-...
-2025-12-28T11:51:04.955314Z	118 |                    <li data-loc="client/src/pages/Admin.tsx:118">登录 Cloudflare Dashboard，进入您的 Pages 项目。</li>
-2025-12-28T11:51:04.955423Z	119 |  ...loc="client/src/pages/Admin.tsx:119">Settings</strong> -> <strong data-loc="client/src/pages/Admin.tsx:119">Functi...
-2025-12-28T11:51:04.955574Z	    |                                                                 ^
-2025-12-28T11:51:04.955715Z	120 |                    <li data-loc="client/src/pages/Admin.tsx:120">在 <strong data-loc="client/src/pages/Admin.tsx:120">D...
-2025-12-28T11:51:04.955832Z	121 |                    <li data-loc="client/src/pages/Admin.tsx:121">变量名称 (Variable name) 必须填写为 <strong data-loc="client/s...
-2025-12-28T11:51:04.955938Z	[31m
-2025-12-28T11:51:04.956033Z	    at failureErrorWithLog (/opt/buildhome/repo/node_modules/.pnpm/esbuild@0.25.10/node_modules/esbuild/lib/main.js:1467:15)
-2025-12-28T11:51:04.956134Z	    at /opt/buildhome/repo/node_modules/.pnpm/esbuild@0.25.10/node_modules/esbuild/lib/main.js:736:50
-2025-12-28T11:51:04.956228Z	    at responseCallbacks.<computed> (/opt/buildhome/repo/node_modules/.pnpm/esbuild@0.25.10/node_modules/esbuild/lib/main.js:603:9)
-2025-12-28T11:51:04.956336Z	    at handleIncomingPacket (/opt/buildhome/repo/node_modules/.pnpm/esbuild@0.25.10/node_modules/esbuild/lib/main.js:658:12)
-2025-12-28T11:51:04.956415Z	    at Socket.readFromStdout (/opt/buildhome/repo/node_modules/.pnpm/esbuild@0.25.10/node_modules/esbuild/lib/main.js:581:7)
-2025-12-28T11:51:04.956538Z	    at Socket.emit (node:events:518:28)
-2025-12-28T11:51:04.956651Z	    at addChunk (node:internal/streams/readable:561:12)
-2025-12-28T11:51:04.956749Z	    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
-2025-12-28T11:51:04.956848Z	    at Readable.push (node:internal/streams/readable:392:5)
-2025-12-28T11:51:04.956951Z	    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)[39m
-2025-12-28T11:51:04.9733Z	 ELIFECYCLE  Command failed with exit code 1.
-2025-12-28T11:51:04.993788Z	Failed: Error while executing user command. Exited with error code: 1
-2025-12-28T11:51:05.003045Z	Failed: build command exited with code: 1
-2025-12-28T11:51:06.199241Z	Failed: error occurred while running build command
+2025-12-28T16:56:22.551706Z	Cloning repository...
+2025-12-28T16:56:23.303921Z	From https://github.com/203535211/Cloudflare-File
+2025-12-28T16:56:23.304643Z	 * branch            f0c454fbbaaca178c2568ef646439afff2abe7dc -> FETCH_HEAD
+2025-12-28T16:56:23.304753Z	
+2025-12-28T16:56:23.335005Z	HEAD is now at f0c454f Automated push from web uploader
+2025-12-28T16:56:23.335489Z	
+2025-12-28T16:56:23.410453Z	
+2025-12-28T16:56:23.411398Z	Using v2 root directory strategy
+2025-12-28T16:56:23.431661Z	Success: Finished cloning repository files
+2025-12-28T16:56:25.148608Z	Checking for configuration in a Wrangler configuration file (BETA)
+2025-12-28T16:56:25.149431Z	
+2025-12-28T16:56:26.247567Z	No wrangler.toml file found. Continuing.
+2025-12-28T16:56:26.313639Z	Detected the following tools from environment: npm@10.9.2, nodejs@22.16.0
+2025-12-28T16:56:26.314405Z	Installing project dependencies: npm install --progress=false
+2025-12-28T16:56:42.373103Z	npm error code ERESOLVE
+2025-12-28T16:56:42.373509Z	npm error ERESOLVE unable to resolve dependency tree
+2025-12-28T16:56:42.373654Z	npm error
+2025-12-28T16:56:42.373769Z	npm error While resolving: filecodebox-cf@1.0.0
+2025-12-28T16:56:42.374333Z	npm error Found: vite@7.3.0
+2025-12-28T16:56:42.374414Z	npm error node_modules/vite
+2025-12-28T16:56:42.374533Z	npm error   dev vite@"^7.1.7" from the root project
+2025-12-28T16:56:42.375222Z	npm error
+2025-12-28T16:56:42.375384Z	npm error Could not resolve dependency:
+2025-12-28T16:56:42.375526Z	npm error peer vite@"^4.0.0 || ^5.0.0" from @builder.io/vite-plugin-jsx-loc@0.1.1
+2025-12-28T16:56:42.375607Z	npm error node_modules/@builder.io/vite-plugin-jsx-loc
+2025-12-28T16:56:42.375664Z	npm error   dev @builder.io/vite-plugin-jsx-loc@"^0.1.1" from the root project
+2025-12-28T16:56:42.375719Z	npm error
+2025-12-28T16:56:42.375824Z	npm error Fix the upstream dependency conflict, or retry
+2025-12-28T16:56:42.376192Z	npm error this command with --force or --legacy-peer-deps
+2025-12-28T16:56:42.376284Z	npm error to accept an incorrect (and potentially broken) dependency resolution.
+2025-12-28T16:56:42.37637Z	npm error
+2025-12-28T16:56:42.376473Z	npm error
+2025-12-28T16:56:42.376606Z	npm error For a full report see:
+2025-12-28T16:56:42.376783Z	npm error /opt/buildhome/.npm/_logs/2025-12-28T16_56_26_734Z-eresolve-report.txt
+2025-12-28T16:56:42.376911Z	npm error A complete log of this run can be found in: /opt/buildhome/.npm/_logs/2025-12-28T16_56_26_734Z-debug-0.log
+2025-12-28T16:56:42.406015Z	Error: Exit with error code: 1
+2025-12-28T16:56:42.406322Z	    at ChildProcess.<anonymous> (/snapshot/dist/run-build.js)
+2025-12-28T16:56:42.406455Z	    at Object.onceWrapper (node:events:652:26)
+2025-12-28T16:56:42.406581Z	    at ChildProcess.emit (node:events:537:28)
+2025-12-28T16:56:42.406683Z	    at ChildProcess._handle.onexit (node:internal/child_process:291:12)
+2025-12-28T16:56:42.415527Z	Failed: build command exited with code: 1
+2025-12-28T16:56:43.533956Z	Failed: error occurred while running build command
