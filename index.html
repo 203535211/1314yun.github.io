@@ -1,0 +1,1844 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>优选检测 | 节点生成</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap');
+        
+        :root {
+            --font-family: 'Noto Sans SC', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --border-radius-lg: 16px;
+            --border-radius-md: 12px;
+            --transition-speed: 0.35s;
+        }
+
+        body.dark-theme {
+            --bg-color: #0d1117;
+            --bg-aurora-1: #3b82f6;
+            --bg-aurora-2: #8b5cf6;
+            --bg-aurora-3: #ec4899;
+            --card-bg: rgba(22, 27, 34, 0.6);
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-heading: #58a6ff;
+            --accent-primary: #58a6ff;
+            --accent-secondary: #3fb950;
+            --accent-text: #fff;
+            --border-color: rgba(139, 148, 158, 0.2);
+            --border-glow: rgba(88, 166, 255, 0.5);
+            --input-bg: rgba(13, 17, 23, 0.6);
+            --line-num-bg: rgba(13, 17, 23, 0.3);
+            --line-num-text: #6e7681;
+        }
+
+        body.light-theme {
+            --bg-color: #f0f2f5;
+            --bg-aurora-1: #60a5fa;
+            --bg-aurora-2: #c084fc;
+            --bg-aurora-3: #fb7185;
+            --card-bg: rgba(255, 255, 255, 0.6);
+            --text-primary: #24292f;
+            --text-secondary: #57606a;
+            --text-heading: #0969da;
+            --accent-primary: #0969da;
+            --accent-secondary: #1a7f37;
+            --accent-text: #fff;
+            --border-color: rgba(27, 31, 36, 0.15);
+            --border-glow: rgba(9, 105, 218, 0.5);
+            --input-bg: rgba(255, 255, 255, 0.8);
+            --line-num-bg: rgba(240, 242, 245, 0.5);
+            --line-num-text: #8c959f;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: var(--font-family);
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background: 
+                radial-gradient(ellipse 80% 80% at 20% 20%, var(--bg-aurora-1), transparent),
+                radial-gradient(ellipse 80% 80% at 80% 20%, var(--bg-aurora-2), transparent),
+                radial-gradient(ellipse 80% 80% at 50% 80%, var(--bg-aurora-3), transparent);
+            opacity: 0.25;
+            animation: aurora 20s linear infinite;
+        }
+
+        @keyframes aurora {
+            0% { transform: rotate(0deg) scale(1.5); }
+            50% { transform: rotate(180deg) scale(1.2); }
+            100% { transform: rotate(360deg) scale(1.5); }
+        }
+
+        #init-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color); z-index: 20000;
+            display: flex; justify-content: center; align-items: center;
+            transition: opacity 0.5s ease, visibility 0.5s;
+        }
+
+        .page-wrapper {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            height: calc(100vh - 40px);
+            opacity: 0; 
+            transition: opacity 0.5s ease;
+        }
+        
+        .page-wrapper.visible { opacity: 1 !important; }
+
+        .top-bar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin-bottom: 10px;
+            height: 50px;
+            width: 100%;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--accent-primary), var(--bg-aurora-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+
+        #theme-toggle, .telegram-link {
+            position: absolute;
+            top: 5px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all var(--transition-speed) ease;
+            color: var(--text-primary);
+            backdrop-filter: blur(10px);
+        }
+
+        #theme-toggle { right: 0; }
+        .telegram-link { left: 0; text-decoration: none; }
+
+        #theme-toggle:hover, .telegram-link:hover {
+            transform: scale(1.1) rotate(15deg);
+            border-color: var(--border-glow);
+            color: var(--accent-primary);
+        }
+
+        /* Login specific CSS - Fixed Display */
+        .login-view {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            flex-grow: 1;
+        }
+        
+        .login-view.active {
+            display: flex !important;
+        }
+
+        .qr-box {
+            background: #fff;
+            padding: 10px;
+            border-radius: 12px;
+            display: inline-block;
+            margin: 20px 0;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+        .qr-img { width: 180px; height: 180px; display: block; }
+        .qr-status { color: var(--text-secondary); font-size: 14px; min-height: 20px; margin-bottom: 10px; text-align: center; }
+        
+        .qr-overlay {
+            position: absolute; top:0; left:0; width:100%; height:100%;
+            background: rgba(255,255,255,0.95);
+            display: flex; align-items: center; justify-content: center;
+            color: #ef4444; font-weight: bold;
+            border-radius: 8px; text-align: center;
+            z-index: 10;
+        }
+
+        /* View Section CSS */
+        .view-section {
+            display: none; 
+            width: 100%;
+            animation: slideUp 0.4s ease-out;
+        }
+        
+        .view-section.active {
+            display: block;
+        }
+
+        #landingView.active {
+            display: flex !important;
+            flex-grow: 1;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding-top: 15vh;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .landing-content {
+            flex-direction: column;
+            width: 100%;
+            padding-bottom: 50px; 
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .landing-btns {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            width: 100%;
+            max-width: 300px;
+            align-items: stretch;
+        }
+
+        .btn-landing {
+            padding: 20px;
+            border-radius: var(--border-radius-lg);
+            border: none;
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-landing:hover {
+            transform: translateY(-5px) scale(1.02);
+            filter: brightness(1.1);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        }
+
+        .btn-gen-mode {
+            background: linear-gradient(135deg, #f59e0b, #d946ef);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-verify-mode {
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-app-mode {
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-radius: var(--border-radius-lg);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            transition: all var(--transition-speed) ease;
+            margin-bottom: 20px;
+        }
+
+        .back-nav-bar {
+            display: flex;
+            justify-content: center; 
+            align-items: center;
+            margin-bottom: 15px; 
+            width: 100%;
+            position: relative;
+        }
+
+        .btn-back-floating {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glow);
+            color: var(--text-heading);
+            padding: 8px 24px; 
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn-back-floating:hover {
+            background: var(--accent-primary);
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(88, 166, 255, 0.4);
+        }
+
+        .editor-container {
+            display: flex;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-md);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+            height: 350px; 
+        }
+        
+        .editor-container:focus-within {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 2px var(--border-glow);
+        }
+        
+        .line-numbers, textarea {
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 24px;
+            padding: 15px 0;
+            margin: 0;
+            border: none;
+            resize: none;
+            background: transparent;
+            height: 100%;
+        }
+
+        .line-numbers {
+            width: 50px;
+            text-align: right;
+            padding-right: 12px;
+            color: var(--line-num-text);
+            background: var(--line-num-bg);
+            border-right: 1px solid var(--border-color);
+            user-select: none;
+            white-space: pre-wrap;
+            overflow: hidden; 
+        }
+        
+        textarea {
+            flex: 1;
+            color: var(--text-primary);
+            padding-left: 12px;
+            padding-right: 12px;
+            outline: none;
+            white-space: pre;
+            overflow-y: scroll;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+        .btns { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+        
+        button.btn-action { 
+            flex: 1; 
+            padding: 12px 20px; 
+            border-radius: var(--border-radius-md); 
+            border: none; 
+            font-weight: 600; 
+            color: var(--accent-text); 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            font-size: 15px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 8px; 
+            letter-spacing: 0.5px;
+            min-width: 90px; 
+            background-image: linear-gradient(45deg, var(--accent-primary), #3182CE 100%);
+            box-shadow: 0 4px 15px 0 rgba(49, 130, 206, 0.25);
+        }
+        
+        button.btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px 0 rgba(49, 130, 206, 0.3);
+            filter: brightness(1.1);
+        }
+
+        #btnScan { background-image: linear-gradient(135deg, #0ea5e9, #3b82f6); }
+        #btnSub { background-image: linear-gradient(135deg, #8b5cf6, #d946ef); }
+        
+        #btnClear { 
+            background: var(--input-bg); 
+            color: var(--text-secondary); 
+            flex: 0 0 60px; 
+            min-width: 60px;
+            border: 1px solid var(--border-color);
+            box-shadow: none;
+        }
+        #btnClear:hover { background: var(--border-color); color: var(--text-primary); }
+
+        .stats { 
+            text-align: center; 
+            font-size: 13px; 
+            color: var(--text-secondary); 
+            margin-top: 15px; 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 0 10px;
+            font-weight: 500;
+        }
+        .stat-val { color: var(--accent-primary); font-weight: bold; margin-left: 5px; }
+
+        .table-responsive {
+            border-radius: var(--border-radius-md);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            background: var(--card-bg);
+            overflow-x: auto; 
+            backdrop-filter: blur(10px);
+        }
+
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        thead { background: var(--input-bg); }
+        th { text-align: left; padding: 14px 16px; color: var(--text-secondary); font-size: 13px; font-weight: 600; white-space: nowrap; letter-spacing: 0.5px; text-transform: uppercase; }
+        th:first-child { padding-left: 24px; }
+        
+        tbody tr { border-bottom: 1px solid var(--border-color); transition: background 0.15s; cursor: pointer; }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: rgba(56, 189, 248, 0.1); }
+        
+        td { padding: 14px 16px; font-size: 14px; color: var(--text-primary); vertical-align: middle; }
+        td:first-child { padding-left: 24px; color: var(--text-secondary); font-family: monospace; }
+
+        .ip-cell { font-family: 'Menlo', 'Monaco', monospace; font-weight: 600; color: var(--text-heading); }
+        .colo-badge { border: 1px solid var(--border-color); color: var(--text-secondary); font-size: 12px; padding: 2px 8px; border-radius: 6px; background: var(--input-bg); font-weight: 600; }
+        
+        .lat-badge { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; min-width: 60px; text-align: center; display: inline-block; }
+        .fast { color: #34d399; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); }
+        .mid { color: #facc15; background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.2); }
+        .slow { color: #f87171; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); }
+
+        .check-icon { font-size: 16px; display: block; width: 100%; text-align: center; }
+        .cross-icon { font-size: 18px; color: var(--text-secondary); display: block; width: 100%; text-align: center; line-height: 1; opacity: 0.5; }
+
+        .bottom-bar {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 380px;
+            background: var(--card-bg); backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glow);
+            padding: 8px; border-radius: 50px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            display: none; z-index: 100;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { from { transform: translateX(-50%) scale(0.8); opacity: 0; } to { transform: translateX(-50%) scale(1); opacity: 1; } }
+        
+        .bottom-actions { display: flex; gap: 10px; width: 100%; }
+        .btn-copy-all {
+            flex: 1; padding: 12px; border-radius: 30px; border: none;
+            background: #10b981; color: white; font-weight: 700; font-size: 14px;
+            cursor: pointer; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+            display: flex; justify-content: center; align-items: center; gap: 8px;
+            transition: 0.2s;
+        }
+        .btn-copy-all:hover { background: #059669; }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
+            z-index: 9999; display: none;
+            justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            width: 90%; max-width: 450px; border-radius: 16px; padding: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: modalPop 0.3s ease-out;
+            max-height: 90vh; overflow-y: auto;
+            margin: auto;
+        }
+        @keyframes modalPop { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        
+        .modal-title { font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .modal-close-btn { background: none; border: none; font-size: 24px; color: var(--text-secondary); cursor: pointer; line-height: 1; }
+        
+        .modal-input {
+            width: 100%; background: var(--input-bg); border: 1px solid var(--border-color);
+            color: var(--text-primary); padding: 12px; border-radius: 8px; outline: none; margin-bottom: 15px;
+            font-size: 14px;
+            text-align: center; 
+            text-align-last: center;
+        }
+        .modal-input:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 2px var(--border-glow); }
+
+        select.modal-input { cursor: pointer; }
+        select.modal-input option { background: #1e293b; color: #fff; text-align: left; }
+        
+        .filter-group { display: flex; gap: 15px; margin-bottom: 20px; }
+        .filter-group label { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); font-size: 14px; cursor: pointer; }
+        .filter-group input[type="checkbox"] { accent-color: var(--accent-primary); width: 16px; height: 16px; cursor: pointer; }
+
+        .modal-actions { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+        .btn-cancel { background: var(--input-bg); color: var(--text-primary); border: 1px solid var(--border-color); flex: 1; }
+        .btn-confirm { background: var(--accent-primary); color: #fff; border: none; flex: 1; }
+        
+        .modal-actions button.btn-confirm {
+            display: flex;
+            flex-direction: column; 
+            align-items: center;
+            justify-content: center;
+            padding: 10px 15px;
+            line-height: 1.3;
+            min-height: 50px;
+        }
+        .modal-actions button.btn-confirm span:first-child { font-size: 15px; font-weight: 700; }
+        .modal-actions button.btn-confirm span:last-child { font-size: 12px; font-weight: normal; opacity: 0.9; }
+
+        .gen-label { color: var(--text-secondary); font-size: 13px; margin-bottom: 5px; display: block; }
+        .gen-result-box { 
+            position: relative; margin-top: 20px; 
+            border: 2px dashed var(--border-color); border-radius: 8px; padding: 5px;
+            background: var(--input-bg);
+        }
+        .gen-result-input { 
+            width: 100%; border: none; background: transparent; color: var(--accent-primary); 
+            padding: 10px; font-family: monospace; font-size: 12px; outline: none;
+        }
+        .btn-copy-res {
+            position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
+            padding: 5px 12px; background: var(--card-bg); font-size: 12px; border-radius: 4px; color: var(--text-primary); border: 1px solid var(--border-color); cursor: pointer;
+        }
+        
+        .gen-status-box {
+            background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #34d399; padding: 12px; border-radius: 8px; text-align: center;
+            font-weight: 600; font-size: 14px; margin-bottom: 15px;
+            display: none; align-items: center; justify-content: center; gap: 8px;
+        }
+
+        #toast-container { position: fixed; top: 70px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast {
+            padding: 12px 20px; border-radius: 10px; color: #fff; font-weight: 600; font-size: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.1);
+            animation: toastIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            opacity: 0; transform: translateY(-20px);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .toast.hide { animation: toastOut 0.4s ease forwards; }
+        @keyframes toastIn { to { opacity: 1; transform: translateY(0); } }
+        @keyframes toastOut { to { opacity: 0; transform: translateY(-30px); } }
+
+        .custom-format-container { display: flex; align-items: center; gap: 5px; }
+        #customProxyFormat { flex: 1; }
+        .btn-reset-format { 
+            padding: 10px; background: var(--input-bg); border: 1px solid var(--border-color); 
+            color: var(--text-secondary); cursor: pointer; border-radius: 8px;
+        }
+        .btn-reset-format:hover { color: var(--text-primary); border-color: var(--accent-primary); }
+
+        .manual-text-info { 
+            text-align: center; 
+            margin: 30px 0 15px; 
+            color: var(--text-secondary); 
+            font-size: 14px; 
+            line-height: 1.6; 
+        }
+        .manual-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 15px; 
+            margin-top: 10px; 
+        }
+        .manual-card { 
+            background: var(--input-bg); 
+            border: 1px solid var(--border-color); 
+            border-radius: 8px; 
+            padding: 15px; 
+            font-size: 13px; 
+        }
+        .manual-title { 
+            font-weight: 700; 
+            color: var(--accent-primary); 
+            margin-bottom: 12px; 
+            border-bottom: 1px solid var(--border-color); 
+            padding-bottom: 8px; 
+            font-size: 1.1em;
+        }
+        .c-row { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 4px 0; 
+            border-bottom: 1px solid rgba(128,128,128,0.1);
+            cursor: pointer;
+            transition: background 0.2s;
+            border-radius: 4px;
+        }
+        .c-row:hover { background: rgba(255,255,255,0.05); }
+        .c-lbl { 
+            font-weight: 600; 
+            color: var(--text-primary); 
+            white-space: nowrap; 
+            margin-right: 10px; 
+        }
+        .c-val { 
+            text-align: right; 
+            word-break: break-all; 
+            color: var(--text-secondary); 
+            font-family: monospace;
+        }
+        
+        .app-list-item {
+            display: flex; flex-direction: column; padding: 1rem;
+            border: 1px solid var(--border-color); border-radius: var(--border-radius-md);
+            margin-bottom: 1rem; background: var(--input-bg);
+        }
+        .app-name { font-size: 1.1em; font-weight: 600; color: var(--text-heading); margin-bottom: 0.5rem; }
+        .app-links a {
+            display: block; color: var(--accent-primary); text-decoration: none;
+            margin-top: 0.5rem; word-break: break-all; font-size: 0.95em;
+        }
+        .app-links a:hover { text-decoration: underline; filter: brightness(1.2); }
+        .app-links span { color: var(--text-secondary); font-size: 0.9em; }
+        
+        .platform-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 20px;
+        }
+        
+        @media (max-width: 600px) { 
+            body { padding: 10px; } 
+            h1 { font-size: 24px; padding: 0 10px; }
+            .editor-container { height: 220px; }
+            .btns { flex-wrap: wrap; }
+            #btnClear { flex: 1; }
+            .manual-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body class="dark-theme">
+
+<div id="init-overlay">
+    <div style="text-align:center; color: var(--accent-primary);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation: spin 1s linear infinite;">
+            <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+        </svg>
+    </div>
+</div>
+
+<div class="page-wrapper" id="mainWrapper">
+    <div class="top-bar">
+        <a href="https://t.me/crow187" target="_blank" class="telegram-link">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 2 L11 13 L2 9 L22 2 Z M22 2 L15 22 L11 13 L2 9 L22 2 Z" fill="var(--text-heading)"></path>
+            </svg>
+        </a>
+        <h1 class="logo" id="pageTitle">优选检测 | 节点生成</h1>
+        <button id="theme-toggle">🌞</button>
+    </div>
+
+    <!-- Login View -->
+    <div id="loginView" class="login-view">
+        <div class="card" style="text-align:center;width:100%;max-width:360px">
+            <h3 style="margin-top:0;color:var(--text-heading);border-bottom:1px solid var(--border-color);padding-bottom:15px;margin-bottom:20px">🐧 QQ 安全登录</h3>
+            <div id="qrContainer" class="qr-box" onclick="getQR()" title="点击刷新二维码">
+                 <div style="width:180px;height:180px;display:flex;align-items:center;justify-content:center;color:#000">加载中...</div>
+            </div>
+            <div id="qrStatus" class="qr-status">请使用手机 QQ 扫码</div>
+        </div>
+    </div>
+
+    <!-- Main Views (Protected) -->
+    <div id="protectedContent" style="display:none; width: 100%; flex-grow: 1; flex-direction: column;">
+        <div id="landingView" class="landing-content view-section active">
+            <div class="landing-btns">
+                <button class="btn-landing btn-gen-mode" onclick="openNotifyModal()">
+                    <span>🚀 生成节点</span>
+                </button>
+                <button class="btn-landing btn-verify-mode" onclick="switchToVerify()">
+                    <span>⚡ 验证 I P</span>
+                </button>
+                <button class="btn-landing btn-app-mode" onclick="openAppSelection()">
+                    <span>📱 APP 下载</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="verifyView" class="view-section">
+            <div class="card">
+                <div class="editor-container">
+                    <div id="lineNumbers" class="line-numbers">1</div>
+                    <textarea id="input" placeholder="请粘贴 IP:端口 、 域名:端口&#10;支持格式：&#10;1.1.1.1:443&#10;google.com:443" wrap="off"></textarea>
+                </div>
+                <div class="btns">
+                    <button class="btn-action" id="btnScan" onclick="scan()">🚀 开始扫描</button>
+                    <button class="btn-action" id="btnSub" onclick="openModal()">📥 订阅提取</button>
+                    <button class="btn-action" id="btnBack" onclick="goBackToHome()">↩️ 返回主页</button>
+                    <button class="btn-action" id="btnClear" onclick="clearAll()">🗑️</button>
+                </div>
+                <div class="stats">
+                    <span>状态: <span id="status" style="color:var(--text-secondary)">就绪</span></span>
+                    <span>有效节点: <span id="validCount" class="stat-val">0</span></span>
+                </div>
+            </div>
+
+            <div class="card" id="tableBox" style="display:none; padding:0;">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th width="40">#</th>
+                                <th>IP:端口</th>
+                                <th>地区</th>
+                                <th>延迟</th>
+                                <th style="text-align:center">ProxyIP</th>
+                                <th style="text-align:center">反代IP</th>
+                            </tr>
+                        </thead>
+                        <tbody id="list"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="emptyMsg" style="text-align:center;padding:50px;color:var(--text-secondary);display:none;font-style:italic;">未发现有效节点</div>
+        </div>
+
+        <div id="generateView" class="view-section">
+            
+            <div class="back-nav-bar">
+                <button class="btn-back-floating" onclick="goBackToHome()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    返回主菜单
+                </button>
+            </div>
+
+            <div class="card">
+                <select id="genRegionSelect" class="modal-input" onchange="handleGenShortcut()">
+                    <option value="">-- 快速选择地区 (验证并生成) --</option>
+                </select>
+                <div id="genStatusBox" class="gen-status-box"></div>
+
+                <span class="gen-label">HOST</span>
+                <input type="text" id="genHost" class="modal-input" placeholder="自动获取...">
+                
+                <span class="gen-label">UUID</span>
+                <input type="text" id="genUuid" class="modal-input" placeholder="自动获取...">
+                
+                <div id="formatGroup" style="display:none; animation: fadeIn 0.3s ease;">
+                    <span class="gen-label" style="color:var(--accent-primary)">你代码支持的Proxyip格式</span>
+                    <select id="proxyFormat" class="modal-input" onchange="handleFormatChange()">
+                        <option value="/proxyip.">/proxyip.</option>
+                        <option value="/proxyip=">/proxyip=</option>
+                        <option value="/proxy.">/proxy.</option>
+                        <option value="/proxy=">/proxy=</option>
+                        <option value="/ip.">/ip.</option>
+                        <option value="/ip=">/ip=</option>
+                        <option value="custom">自定义 (手动输入)</option>
+                    </select>
+                    <div id="customFormatBox" class="custom-format-container" style="display:none;">
+                        <input type="text" id="customProxyFormat" class="modal-input" placeholder="输入path的Proxyip格式" style="margin-bottom:0;">
+                        <button class="btn-reset-format" onclick="resetFormatSelect()" title="重置选择">↩️</button>
+                    </div>
+                </div>
+                
+                <span class="gen-label">生成数量限制</span>
+                <select id="genLimit" class="modal-input">
+                    <option value="10">生成上限 10 个节点</option>
+                    <option value="20" selected>生成上限 20 个节点</option>
+                    <option value="30">生成上限 30 个节点</option>
+                    <option value="40">生成上限 40 个节点</option>
+                    <option value="50">生成上限 50 个节点</option>
+                </select>
+
+                <div class="modal-actions">
+                    <button class="btn-action btn-confirm" onclick="generateSub('vless')" style="background:#3b82f6">
+                        <span>Vless</span><span>订阅</span>
+                    </button>
+                    <button class="btn-action btn-confirm" onclick="generateSub('trojan')" style="background:#ec4899">
+                        <span>Trojan</span><span>订阅</span>
+                    </button>
+                    <button class="btn-action btn-confirm" onclick="generateSub('ss')" style="background:#10b981">
+                        <span>SS</span><span>订阅</span>
+                    </button>
+                </div>
+
+                <div class="gen-result-box">
+                    <input type="text" id="genResult" class="gen-result-input" readonly placeholder="订阅地址将显示在这里...">
+                    <button class="btn-copy-res" onclick="copyGenResult()">复制</button>
+                </div>
+
+                <div class="manual-text-info">
+                    本页面默认的Snippets 和 Pages 支持五种协议<br>
+                    以上订阅支持3种协议，以下是2种手动添加协议
+                </div>
+                <div class="manual-grid">
+                    <div class="manual-card">
+                        <div class="manual-title">HTTP协议 (手动配置)</div>
+                        <div class="c-row" onclick="copyVal(this)"><span class="c-lbl">别名(remarks):</span><span class="c-val dynamic-remark">CM优选域名</span></div>
+                        <div class="c-row" onclick="copyVal(this)"><span class="c-lbl">地址(address):</span><span class="c-val dynamic-addr">cf.090227.xyz</span></div>
+                        <div class="c-row" onclick="copyVal(this)"><span class="c-lbl">端口(port):</span><span class="c-val dynamic-port">443</span></div>
+                        <div class="c-row" onclick="copyVal(this)"><span class="c-lbl">用户(User):</span><span class="c-val"></span></div>
+                        <div class="c-row" onclick="copyVal(this)"><span class="c-lbl">密码(Pass):</span><span class="c-val"></span></div>
+                        <div class="c-row" onclick="copyVal(this)"><span class="c-lbl">传输协议(network):</span><span class="c-val">ws</span></div>
+                        <div class="c-row" onclick="copyVal(this)"><span class="c-lbl">伪装类型(type):</span><span class="c-val">none</span></div>
+                        <div class="c-row" onclick="copyVal(this)"><span class="c-lbl">伪装域名(host):</span><span class="c-val dynamic-host">snippets.kkii.eu.org</span></div>
+                        <div class="c-row" onclick="copyVal(this)"><span class="c-lbl">路径(path):</span><span class="c-val dynamic-path">/</span></div>
+                        <div class="c-row" onclick="copyVal(this)"><span class="c-lbl">传输层安全(TLS):</span><span class="c-val">tls</span></div>
+                        <div class="c-row" onclick="copyVal(this)"><span class="c-lbl">SNI:</span><span class="c-val dynamic-host">snippets.kkii.eu.org</span></div>
+                        <div class="c-row" onclick="copyVal(this)"><span class="c-lbl">Fingerprint:</span><span class="c-val">chrome</span></div>
+                        <div class="c-row" onclick="copyVal(this)"><span class="c-lbl">跳过证书验证:</span><span class="c-val">false</span></div>
+                    </div>
+                    <div class="manual-card">
+                        <div class="manual-title">SOCKS5协议 (手动配置)</div>
+                        <div class="c-row" onclick="copyVal(this)"><span class="c-lbl">别名(remarks):</span><span class="c-val dynamic-remark">CM优选域名</span></div>
+                        <div class="c-row" onclick="copyVal(this)"><span class="c-lbl">地址(address):</span><span class="c-val dynamic-addr">cf.090227.xyz</span></div>
+                        <div class="c-row" onclick="copyVal(this)"><span class="c-lbl">端口(port):</span><span class="c-val dynamic-port">443</span></div>
+                        <div class="c-row" onclick="copyVal(this)"><span class="c-lbl">用户(User):</span><span class="c-val"></span></div>
+                        <div class="c-row" onclick="copyVal(this)"><span class="c-lbl">密码(Pass):</span><span class="c-val"></span></div>
+                        <div class="c-row" onclick="copyVal(this)"><span class="c-lbl">传输协议(network):</span><span class="c-val">ws</span></div>
+                        <div class="c-row" onclick="copyVal(this)"><span class="c-lbl">伪装类型(type):</span><span class="c-val">none</span></div>
+                        <div class="c-row" onclick="copyVal(this)"><span class="c-lbl">伪装域名(host):</span><span class="c-val dynamic-host">snippets.kkii.eu.org</span></div>
+                        <div class="c-row" onclick="copyVal(this)"><span class="c-lbl">路径(path):</span><span class="c-val dynamic-path">/</span></div>
+                        <div class="c-row" onclick="copyVal(this)"><span class="c-lbl">传输层安全(TLS):</span><span class="c-val">tls</span></div>
+                        <div class="c-row" onclick="copyVal(this)"><span class="c-lbl">SNI:</span><span class="c-val dynamic-host">snippets.kkii.eu.org</span></div>
+                        <div class="c-row" onclick="copyVal(this)"><span class="c-lbl">Fingerprint:</span><span class="c-val">chrome</span></div>
+                        <div class="c-row" onclick="copyVal(this)"><span class="c-lbl">跳过证书验证:</span><span class="c-val">false</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="bottomBar" class="bottom-bar">
+        <div class="bottom-actions">
+            <button class="btn-copy-all" onclick="copyAll()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                复制全部有效节点
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<div id="subModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-title">
+            <span>📥 订阅提取</span>
+            <button class="modal-close-btn" onclick="closeModal()">×</button>
+        </div>
+        <select id="regionSelect" class="modal-input" onchange="handleRegionChange()">
+            <option value="">-- 快速选择地区 --</option>
+        </select>
+        <input type="text" id="subUrl" class="modal-input" placeholder="请输入订阅链接 / 节点文本">
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeModal()">取消</button>
+            <button class="btn-confirm" id="btnExtract" onclick="fetchSub()">立即提取</button>
+        </div>
+    </div>
+</div>
+
+<div id="appSelectModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-title">
+            <span>📱 选择客户端平台</span>
+            <button class="modal-close-btn" onclick="closeAppSelect()">×</button>
+        </div>
+        <div class="platform-grid">
+            <button class="btn-action" onclick="openAppList('android')">🤖 Android</button>
+            <button class="btn-action" onclick="openAppList('ios')">🍎 iOS</button>
+            <button class="btn-action" onclick="openAppList('windows')">💻 Windows</button>
+            <button class="btn-action" onclick="openAppList('mac')">🍏 macOS</button>
+        </div>
+    </div>
+</div>
+
+<div id="appListModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-title">
+            <span id="appListTitle">APP 下载</span>
+            <button class="modal-close-btn" onclick="closeAppList()">×</button>
+        </div>
+        <div id="appListBody"></div>
+    </div>
+</div>
+
+<div id="notifyModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-title">
+            <span>📢 公告</span>
+            <button class="modal-close-btn" onclick="closeNotifyModal()">×</button>
+        </div>
+        <div id="notifyContent" style="margin-bottom:20px;line-height:1.6;color:var(--text-secondary)"></div>
+        <div class="modal-actions">
+            <button class="btn-confirm" onclick="agreeNotify()">我知道了</button>
+        </div>
+    </div>
+</div>
+
+<div id="disclaimerModal" class="modal-overlay" style="z-index: 20001;">
+    <div class="modal-content">
+        <div class="modal-title" style="color: #ef4444;">
+            <span>⚠️ 免责声明</span>
+        </div>
+        <div id="disclaimerContent" style="margin-bottom:20px;line-height:1.6;color:var(--text-secondary);max-height:60vh;overflow-y:auto;"></div>
+        <div class="modal-actions">
+            <button class="btn-confirm" onclick="closeDisclaimer()" style="background:#ef4444">我已阅读并同意</button>
+        </div>
+    </div>
+</div>
+
+<div id="noDataModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-title">
+            <span>⚠️ 暂无数据</span>
+            <button class="modal-close-btn" onclick="closeNoDataModal()">×</button>
+        </div>
+        <p style="color:var(--text-secondary);margin-bottom:20px;">该地区暂时没有可用节点，请前往源站获取最新数据。</p>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeNoDataModal()">关闭</button>
+            <button class="btn-confirm" onclick="goToScanSite()">前往源站</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+    const API_URL = "/batch"; 
+    const FETCH_URL = "/fetch";
+    const STORE_URL = "/store";
+    let validList = [];
+    let currentRegionName = ""; 
+    const toastColors = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
+    
+    let GlobalHost = "";
+    let GlobalUUID = "";
+    let PUBLIC_CONFIG = {};
+
+    const themeToggle = document.getElementById('theme-toggle');
+    const body = document.body;
+    
+    function setTheme(theme){
+        if(theme==='light'){
+            body.classList.remove('dark-theme');
+            body.classList.add('light-theme');
+            themeToggle.textContent='🌙';
+        }else{
+            body.classList.remove('light-theme');
+            body.classList.add('dark-theme');
+            themeToggle.textContent='🌞';
+        }
+    }
+    
+    themeToggle.addEventListener('click',()=>{
+        const isDark = body.classList.contains('dark-theme');
+        const newTheme = isDark?'light':'dark';
+        setTheme(newTheme);
+        localStorage.setItem('theme',newTheme);
+    });
+    
+    const savedTheme = localStorage.getItem('theme')||'dark';
+    setTheme(savedTheme);
+
+    const landingView = document.getElementById('landingView');
+    const verifyView = document.getElementById('verifyView');
+    const generateView = document.getElementById('generateView');
+    const pageTitle = document.getElementById('pageTitle');
+    const notifyModal = document.getElementById('notifyModal');
+    const disclaimerModal = document.getElementById('disclaimerModal');
+    const noDataModal = document.getElementById('noDataModal');
+    const initOverlay = document.getElementById('init-overlay');
+    const mainWrapper = document.getElementById('mainWrapper');
+    const appSelectModal = document.getElementById('appSelectModal');
+    const appListModal = document.getElementById('appListModal');
+    
+    /* Login Logic Variables */
+    let loginTimer, qrsig;
+    const loginView = document.getElementById('loginView');
+    const protectedContent = document.getElementById('protectedContent');
+    const qrContainer = document.getElementById('qrContainer');
+    const qrStatus = document.getElementById('qrStatus');
+
+    function hideAllViews() {
+        landingView.classList.remove('active');
+        verifyView.classList.remove('active');
+        generateView.classList.remove('active');
+        const bottomBar = document.getElementById('bottomBar');
+        if(bottomBar) bottomBar.style.display = 'none';
+    }
+
+    function resetViews() {
+        clearAll(); 
+        document.getElementById('genHost').value = "";
+        document.getElementById('genUuid').value = "";
+        document.getElementById('genResult').value = "";
+        document.getElementById('genStatusBox').style.display = 'none';
+        document.getElementById('genRegionSelect').style.display = 'block';
+        document.getElementById('genRegionSelect').value = "";
+        resetFormatSelect();
+        document.getElementById('formatGroup').style.display = 'none';
+    }
+
+    function goBackToHome() {
+        resetViews(); 
+        hideAllViews();
+        landingView.classList.add('active');
+        pageTitle.innerText = "你要使用？";
+        applyPreset();
+    }
+
+    function switchToVerify() {
+        resetViews(); 
+        hideAllViews();
+        verifyView.classList.add('active');
+        pageTitle.innerText = "Proxyip 验证";
+        const bottomBar = document.getElementById('bottomBar');
+        if(validList.length > 0 && bottomBar) bottomBar.style.display = 'block';
+    }
+
+    function switchToGenerate() {
+        resetViews(); 
+        hideAllViews();
+        generateView.classList.add('active');
+        pageTitle.innerText = "生成订阅节点";
+        applyPreset(); 
+    }
+
+    function openNotifyModal() {
+        if(PUBLIC_CONFIG.popup2_open) {
+            document.getElementById('notifyContent').innerHTML = PUBLIC_CONFIG.popup2_content;
+            notifyModal.style.display = 'flex';
+        } else {
+            switchToGenerate();
+        }
+    }
+    function closeNotifyModal() { notifyModal.style.display = 'none'; }
+    function agreeNotify() {
+        closeNotifyModal();
+        switchToGenerate();
+    }
+    
+    function closeDisclaimer() {
+        disclaimerModal.style.display = 'none';
+    }
+
+    function revealMainContent() {
+        if (initOverlay) {
+            initOverlay.style.opacity = '0';
+            setTimeout(() => {
+                initOverlay.style.display = 'none';
+                initOverlay.style.visibility = 'hidden';
+                if(mainWrapper) mainWrapper.classList.add('visible');
+            }, 500);
+        }
+    }
+
+    function showNoDataModal() { noDataModal.style.display = 'flex'; }
+    function closeNoDataModal() { noDataModal.style.display = 'none'; }
+    function goToScanSite() {
+        window.open('https://proxyip.881288.xyz/', '_blank');
+        closeNoDataModal();
+    }
+    
+    /* Login Logic */
+    async function getQR() {
+        clearInterval(loginTimer);
+        qrContainer.innerHTML = '<div style="width:180px;height:180px;display:flex;align-items:center;justify-content:center;color:#000">加载中...</div>';
+        try {
+            const r = await fetch('/auth/qr');
+            const d = await r.json();
+            qrsig = d.qrsig;
+            qrContainer.innerHTML = `<img src="${d.image}" class="qr-img">`;
+            qrStatus.innerText = '请扫码';
+            checkLogin();
+        } catch { qrStatus.innerText = '网络错误'; }
+    }
+    
+    function checkLogin() {
+        loginTimer = setInterval(async () => {
+            try {
+                const r = await fetch('/auth/check', {method:'POST', body:JSON.stringify({qrsig})});
+                const d = await r.json();
+                if(d.code === 0) {
+                    clearInterval(loginTimer);
+                    qrStatus.innerText = '登录成功';
+                    location.reload();
+                } else if (d.code === 403) {
+                     clearInterval(loginTimer);
+                     alert(d.msg);
+                     if(d.redirect) location.href = d.redirect;
+                     else getQR();
+                } else if (d.code === 66) qrStatus.innerText = '等待确认...';
+                else if (d.code === 67) qrStatus.innerText = '请在手机上确认';
+                else if (d.code === 65) {
+                    clearInterval(loginTimer);
+                    qrContainer.innerHTML += '<div class="qr-overlay" onclick="getQR();event.stopPropagation()">已过期<br>点击刷新</div>';
+                    qrStatus.innerText = '二维码已过期';
+                }
+            } catch {}
+        }, 2000);
+    }
+    
+    function showLogin() {
+        loginView.classList.add('active');
+        protectedContent.style.display = 'none';
+        getQR();
+    }
+    
+    function showApp() {
+        loginView.classList.remove('active');
+        protectedContent.style.display = 'flex';
+        
+        // Show disclaimer if needed
+        if (PUBLIC_CONFIG.popup1_open) {
+            setTimeout(() => {
+                document.getElementById('disclaimerContent').innerHTML = PUBLIC_CONFIG.popup1_content;
+                disclaimerModal.style.display = 'flex';
+            }, 600);
+        }
+    }
+
+    /* APP Download Logic */
+    function openAppSelection() {
+        appSelectModal.style.display = 'flex';
+    }
+    function closeAppSelect() {
+        appSelectModal.style.display = 'none';
+    }
+    
+    const downloadData={android:[{name:'Clash-Mi',repo:'KaringX/clashmi',keywords:['android','arm64-v8a.apk']},{name:'Karing',repo:'KaringX/karing',keywords:['apk','universal-release']},{name:'Sing-Box',repo:'SagerNet/sing-box',keywords:['android','universal']},{name:'V2rayNG',repo:'2dust/v2rayNG',keywords:['apk','arm64-v8a']}],ios:[{name:'Karing',fixedUrl:'https://apps.apple.com/us/app/karing/id6472431552?platform=iphone'},{name:'Sing-Box',fixedUrl:'https://apps.apple.com/us/app/sing-box-vt/id6673731168?platform=iphone'},{name:'Shadowrocket',fixedUrl:'https://apps.apple.com/us/app/shadowrocket/id932747118?platform=iphone'}],windows:[{name:'Clash-Mi',repo:'KaringX/clashmi',keywords:['windows','x64.zip']},{name:'Karing',repo:'KaringX/karing',keywords:['exe','x64-setup']},{name:'V2rayN',repo:'2dust/v2rayN',keywords:['windows-64.zip']},{name:'ClashN',repo:'2dust/clashN',keywords:['clashN.zip']}],mac:[{name:'Karing',fixedUrl:'https://apps.apple.com/us/app/karing/id6472431552?platform=mac'},{name:'Sing-Box',fixedUrl:'https://apps.apple.com/us/app/sing-box-vt/id6673731168?platform=mac'}]};
+
+    function getAcceleratedUrl(url){
+        if(url.includes('github.com')){
+            const origin = window.location.origin;
+            return origin + '/https://' + url.replace('https://','');
+        }
+        return url;
+    }
+
+    async function getLatestReleaseAsset(repo,keywords){
+        try{
+            const apiUrl = `https://api.github.com/repos/${repo}/releases/latest`;
+            const response = await fetch(getAcceleratedUrl(apiUrl) + '?t=' + Date.now());
+            if(!response.ok)return null;
+            const data=await response.json();
+            for(const keyword of keywords){
+                const asset=data.assets.find(a=>a.name.toLowerCase().includes(keyword.toLowerCase()));
+                if(asset)return asset.browser_download_url;
+            }
+            return null;
+        }catch(e){return null;}
+    }
+
+    async function openAppList(platform){
+        closeAppSelect();
+        const platformName={android:'安卓',ios:'苹果',windows:'Windows',mac:'Mac'}[platform];
+        document.getElementById('appListTitle').textContent = `${platformName}客户端下载`;
+        const modalBody = document.getElementById('appListBody');
+        modalBody.innerHTML = '<div style="text-align:center;padding:20px;color:var(--accent-primary);">⏳ 正在获取最新版本...</div>';
+        appListModal.style.display = 'flex';
+        
+        const apps = downloadData[platform];
+        let content = '';
+        
+        for(const app of apps){
+            let linksHtml = '';
+            if(app.fixedUrl){
+                linksHtml = `<a href="${getAcceleratedUrl(app.fixedUrl)}" target="_blank" rel="noopener noreferrer">📲 前往下载 (${app.fixedUrl.includes('apps.apple.com')?'AppStore':'直连'})</a>`;
+            } else if(app.repo){
+                const url = await getLatestReleaseAsset(app.repo, app.keywords);
+                if(url){
+                    const accUrl = getAcceleratedUrl(url);
+                    linksHtml = `<a href="${accUrl}" target="_blank" rel="noopener noreferrer">⬇️ 点击下载 (${url.split('/').pop()})</a>`;
+                } else {
+                    linksHtml = '<span>⚠️ 获取失败，请稍后重试。</span>';
+                }
+            }
+            content += `<div class="app-list-item"><span class="app-name">${app.name}</span><div class="app-links">${linksHtml}</div></div>`;
+        }
+        modalBody.innerHTML = content;
+    }
+    
+    function closeAppList() { appListModal.style.display = 'none'; }
+
+    const inputArea = document.getElementById('input');
+    const lineNumbers = document.getElementById('lineNumbers');
+    const modal = document.getElementById('subModal');
+    const subInput = document.getElementById('subUrl');
+    const regionSelect = document.getElementById('regionSelect');
+    const genRegionSelect = document.getElementById('genRegionSelect');
+    
+    const genHostInput = document.getElementById('genHost');
+    const genUuidInput = document.getElementById('genUuid');
+    const formatGroup = document.getElementById('formatGroup');
+    const proxyFormatSelect = document.getElementById('proxyFormat');
+    const customFormatBox = document.getElementById('customFormatBox');
+
+    async function initApp() {
+        try {
+            const res = await fetch('/api/public/config?t=' + Date.now()).then(r => r.json());
+            PUBLIC_CONFIG = res;
+            
+            if (res.node_data) {
+                GlobalHost = res.node_data.host;
+                GlobalUUID = res.node_data.uuid;
+            }
+
+            applyPreset();
+
+            // Check Auth Logic
+            if(res.qq_auth_open && !res.is_logged_in) {
+                showLogin();
+            } else {
+                showApp();
+            }
+            
+            revealMainContent();
+
+        } catch (e) {
+            console.error("Init failed", e);
+            revealMainContent();
+            showApp(); // Fallback to show app on error
+        }
+    }
+
+    function applyPreset() {
+        genHostInput.value = "";
+        genUuidInput.value = "";
+        
+        const hostVal = GlobalHost || "未配置 Host";
+        const uuidVal = GlobalUUID || "未配置 UUID";
+
+        genHostInput.placeholder = hostVal;
+        genUuidInput.placeholder = uuidVal;
+        
+        if(GlobalHost) {
+            document.querySelectorAll('.dynamic-host').forEach(el => el.innerText = GlobalHost);
+        } else {
+            document.querySelectorAll('.dynamic-host').forEach(el => el.innerText = "未配置");
+        }
+        
+        checkCustomMode();
+    }
+
+    function checkCustomMode() {
+        if(genHostInput.value.trim() !== "" || genUuidInput.value.trim() !== "") {
+            formatGroup.style.display = 'block';
+        } else {
+            formatGroup.style.display = 'none';
+            resetFormatSelect();
+        }
+    }
+
+    function handleFormatChange() {
+        if (proxyFormatSelect.value === 'custom') {
+            proxyFormatSelect.style.display = 'none';
+            customFormatBox.style.display = 'flex';
+            document.getElementById('customProxyFormat').focus();
+        } else {
+            proxyFormatSelect.style.display = 'block';
+            customFormatBox.style.display = 'none';
+        }
+    }
+
+    function resetFormatSelect() {
+        proxyFormatSelect.value = "/proxyip.";
+        proxyFormatSelect.style.display = 'block';
+        customFormatBox.style.display = 'none';
+        document.getElementById('customProxyFormat').value = "";
+    }
+    
+    function updateManualConfig(ip, port, region) {
+        const remark = `${region}（反代IP）`;
+        document.querySelectorAll('.dynamic-remark').forEach(el => el.innerText = remark);
+        document.querySelectorAll('.dynamic-addr').forEach(el => el.innerText = ip);
+        document.querySelectorAll('.dynamic-port').forEach(el => el.innerText = port);
+        document.querySelectorAll('.dynamic-path').forEach(el => el.innerText = `/${ip}:${port}`);
+    }
+    
+    function resetManualConfig() {
+        document.querySelectorAll('.dynamic-remark').forEach(el => el.innerText = 'CM优选域名');
+        document.querySelectorAll('.dynamic-addr').forEach(el => el.innerText = 'cf.090227.xyz');
+        document.querySelectorAll('.dynamic-port').forEach(el => el.innerText = '443');
+        document.querySelectorAll('.dynamic-path').forEach(el => el.innerText = '/');
+        document.querySelectorAll('.dynamic-host').forEach(el => el.innerText = GlobalHost || '未配置');
+    }
+
+    function copyVal(row) {
+        const valSpan = row.querySelector('.c-val');
+        if (valSpan) {
+            const text = valSpan.innerText;
+            if (text) {
+                copyText(text);
+            }
+        }
+    }
+
+    genHostInput.addEventListener('input', checkCustomMode);
+    genUuidInput.addEventListener('input', checkCustomMode);
+
+    const regionsData = [
+        {name: "香港", url: "https://proxyip.881288.xyz/api/txt/HK"},
+        {name: "台湾", url: "https://proxyip.881288.xyz/api/txt/TW"},
+        {name: "日本", url: "https://proxyip.881288.xyz/api/txt/JP"},
+        {name: "韩国", url: "https://proxyip.881288.xyz/api/txt/KR"},
+        {name: "新加坡", url: "https://proxyip.881288.xyz/api/txt/SG"},
+        {name: "美国", url: "https://proxyip.881288.xyz/api/txt/US"},
+        {name: "马来西亚", url: "https://proxyip.881288.xyz/api/txt/MY"},
+        {name: "泰国", url: "https://proxyip.881288.xyz/api/txt/TH"},
+        {name: "越南", url: "https://proxyip.881288.xyz/api/txt/VN"},
+        {name: "印尼", url: "https://proxyip.881288.xyz/api/txt/ID"},
+        {name: "菲律宾", url: "https://proxyip.881288.xyz/api/txt/PH"},
+        {name: "缅甸", url: "https://proxyip.881288.xyz/api/txt/MM"},
+        {name: "老挝", url: "https://proxyip.881288.xyz/api/txt/LA"},
+        {name: "柬埔寨", url: "https://proxyip.881288.xyz/api/txt/KH"},
+        {name: "孟加拉", url: "https://proxyip.881288.xyz/api/txt/BD"},
+        {name: "印度", url: "https://proxyip.881288.xyz/api/txt/IN"},
+        {name: "巴基斯坦", url: "https://proxyip.881288.xyz/api/txt/PK"},
+        {name: "文莱", url: "https://proxyip.881288.xyz/api/txt/BN"},
+        {name: "加拿大", url: "https://proxyip.881288.xyz/api/txt/CA"},
+        {name: "墨西哥", url: "https://proxyip.881288.xyz/api/txt/MX"},
+        {name: "巴西", url: "https://proxyip.881288.xyz/api/txt/BR"},
+        {name: "阿根廷", url: "https://proxyip.881288.xyz/api/txt/AR"},
+        {name: "智利", url: "https://proxyip.881288.xyz/api/txt/CL"},
+        {name: "哥伦比亚", url: "https://proxyip.881288.xyz/api/txt/CO"},
+        {name: "秘鲁", url: "https://proxyip.881288.xyz/api/txt/PE"},
+        {name: "英国", url: "https://proxyip.881288.xyz/api/txt/GB"},
+        {name: "德国", url: "https://proxyip.881288.xyz/api/txt/DE"},
+        {name: "法国", url: "https://proxyip.881288.xyz/api/txt/FR"},
+        {name: "荷兰", url: "https://proxyip.881288.xyz/api/txt/NL"},
+        {name: "俄罗斯", url: "https://proxyip.881288.xyz/api/txt/RU"},
+        {name: "意大利", url: "https://proxyip.881288.xyz/api/txt/IT"},
+        {name: "西班牙", url: "https://proxyip.881288.xyz/api/txt/ES"},
+        {name: "土耳其", url: "https://proxyip.881288.xyz/api/txt/TR"},
+        {name: "波兰", url: "https://proxyip.881288.xyz/api/txt/PL"},
+        {name: "乌克兰", url: "https://proxyip.881288.xyz/api/txt/UA"},
+        {name: "瑞典", url: "https://proxyip.881288.xyz/api/txt/SE"},
+        {name: "芬兰", url: "https://proxyip.881288.xyz/api/txt/FI"},
+        {name: "挪威", url: "https://proxyip.881288.xyz/api/txt/NO"},
+        {name: "丹麦", url: "https://proxyip.881288.xyz/api/txt/DK"},
+        {name: "捷克", url: "https://proxyip.881288.xyz/api/txt/CZ"},
+        {name: "罗马尼亚", url: "https://proxyip.881288.xyz/api/txt/RO"},
+        {name: "瑞士", url: "https://proxyip.881288.xyz/api/txt/CH"},
+        {name: "葡萄牙", url: "https://proxyip.881288.xyz/api/txt/PT"},
+        {name: "澳大利亚", url: "https://proxyip.881288.xyz/api/txt/AU"},
+        {name: "新西兰", url: "https://proxyip.881288.xyz/api/txt/NZ"},
+        {name: "南非", url: "https://proxyip.881288.xyz/api/txt/ZA"},
+        {name: "埃及", url: "https://proxyip.881288.xyz/api/txt/EG"},
+        {name: "尼日利亚", url: "https://proxyip.881288.xyz/api/txt/NG"},
+        {name: "沙特", url: "https://proxyip.881288.xyz/api/txt/SA"},
+        {name: "阿联酋", url: "https://proxyip.881288.xyz/api/txt/AE"},
+        {name: "以色列", url: "https://proxyip.881288.xyz/api/txt/IL"},
+        {name: "伊朗", url: "https://proxyip.881288.xyz/api/txt/IR"},
+        {name: "伊拉克", url: "https://proxyip.881288.xyz/api/txt/IQ"}
+    ];
+
+    regionsData.forEach(r => {
+        const opt1 = document.createElement('option');
+        opt1.value = r.url;
+        opt1.innerText = r.name;
+        regionSelect.appendChild(opt1);
+
+        const opt2 = document.createElement('option');
+        opt2.value = r.url;
+        opt2.innerText = r.name;
+        genRegionSelect.appendChild(opt2);
+    });
+
+    function updateLineNumbers() {
+        const val = inputArea.value;
+        const lineCount = val.length > 0 ? val.split('\n').length : 1;
+        lineNumbers.innerHTML = Array.from({length: lineCount}, (_, i) => i + 1).join('\n');
+    }
+
+    function syncScroll() {
+        lineNumbers.scrollTop = inputArea.scrollTop;
+    }
+
+    inputArea.addEventListener('input', updateLineNumbers);
+    inputArea.addEventListener('scroll', syncScroll);
+    inputArea.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const text = (e.clipboardData || window.clipboardData).getData('text');
+        const cleanText = text.split('\n').map(line => line.trim()).filter(line => line).join('\n');
+        document.execCommand('insertText', false, cleanText);
+    });
+
+    updateLineNumbers();
+
+    function openModal() { modal.style.display = 'flex'; subInput.focus(); }
+    function closeModal() { modal.style.display = 'none'; subInput.value = ''; regionSelect.value = ""; }
+
+    async function handleRegionChange() {
+        const url = regionSelect.value;
+        if (!url) return;
+        currentRegionName = ""; 
+        subInput.value = url;
+        await fetchSub(true);
+        regionSelect.value = ""; 
+    }
+
+    async function handleGenShortcut() {
+        const url = genRegionSelect.value;
+        if (!url) return;
+        
+        inputArea.value = '';
+        validList = [];
+        resetManualConfig();
+
+        const index = genRegionSelect.selectedIndex;
+        currentRegionName = genRegionSelect.options[index].text;
+
+        const statusBox = document.getElementById('genStatusBox');
+        const selectBox = document.getElementById('genRegionSelect');
+        
+        statusBox.style.display = 'flex';
+        statusBox.innerHTML = `<span>⏳ 正在获取 ${currentRegionName} 数据并验证...</span>`;
+        selectBox.style.display = 'none';
+
+        try {
+            const res = await fetch(`${FETCH_URL}?url=${encodeURIComponent(url)}&t=${Date.now()}`);
+            if (!res.ok) throw new Error('Network error');
+            const text = await res.text();
+            
+            const ips = parseSubscription(text);
+            if (ips.length === 0) {
+                showToast(`该地区(${currentRegionName})暂无可用数据`, '#f59e0b', 4000);
+                statusBox.style.display = 'none';
+                selectBox.style.display = 'block';
+                selectBox.value = "";
+                showNoDataModal();
+                resetManualConfig();
+                return;
+            }
+
+            inputArea.value = ips.join('\n'); 
+            updateLineNumbers();
+
+            const count = await scan(true);
+
+            if(count > 0) {
+                statusBox.innerHTML = `<span>✅ 已获取 ${count} 个有效IP (${currentRegionName})</span>`;
+                if (validList.length > 0) {
+                    const firstNode = validList[0];
+                    updateManualConfig(firstNode.ip, firstNode.port, currentRegionName);
+                }
+            } else {
+                statusBox.innerHTML = `<span>⚠️ 未发现有效节点，请尝试其他地区</span>`;
+                resetManualConfig();
+                setTimeout(() => {
+                    statusBox.style.display = 'none';
+                    selectBox.style.display = 'block';
+                    selectBox.value = "";
+                }, 3000);
+            }
+
+        } catch (e) {
+            showToast('处理失败: ' + e.message, '#f87171');
+            statusBox.style.display = 'none';
+            selectBox.style.display = 'block';
+            selectBox.value = "";
+            resetManualConfig();
+        }
+    }
+
+    async function fetchSub(isRegion = false) {
+        const url = subInput.value.trim();
+        if (!url) return showToast('请输入链接', '#f87171');
+        
+        const btn = document.getElementById('btnExtract');
+        const originalText = btn.innerText;
+        btn.innerText = '提取中...';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch(`${FETCH_URL}?url=${encodeURIComponent(url)}&t=${Date.now()}`);
+            if (!res.ok) throw new Error('Network error');
+            const text = await res.text();
+            
+            const ips = parseSubscription(text);
+            if (ips.length === 0) {
+                if (isRegion) {
+                    showNoDataModal();
+                } else {
+                    showToast('未提取到有效节点 IP', '#f59e0b');
+                }
+            } else {
+                inputArea.value = ips.join('\n');
+                updateLineNumbers();
+                closeModal();
+                showToast(`提取到 ${ips.length} 个地址`, '#10b981');
+                setTimeout(scan, 500);
+            }
+        } catch (e) {
+            showToast('提取失败: ' + e.message, '#f87171');
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    function parseSubscription(content) {
+        content = content.trim();
+        let decoded = content;
+        try {
+            let temp = atob(content.replace(/\s/g, ''));
+            decoded = decodeURIComponent(escape(temp));
+        } catch (e) {}
+
+        const result = new Set();
+        const scanText = (text) => {
+            const lines = text.split(/[\r\n]+/);
+            lines.forEach(line => {
+                line = line.trim();
+                if (!line) return;
+                if (line.startsWith('vmess://')) {
+                    try {
+                        const b64 = line.substring(8);
+                        const jsonStr = decodeURIComponent(escape(atob(b64)));
+                        const obj = JSON.parse(jsonStr);
+                        if (obj.add && obj.port) result.add(`${obj.add}:${obj.port}`);
+                    } catch (e) {}
+                } else if (line.startsWith('vless://') || line.startsWith('trojan://')) {
+                    const match = line.match(/@([^:]+):(\d+)/);
+                    if (match && match[1] && match[2]) result.add(`${match[1]}:${match[2]}`);
+                }
+            });
+            const ipv4Regex = /(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?):(?:\d{1,5})/g;
+            const v4Matches = text.match(ipv4Regex);
+            if (v4Matches) v4Matches.forEach(ip => result.add(ip));
+            const ipv6Regex = /\[([a-fA-F0-9:]+)\]:(?:\d{1,5})/g;
+            const v6Matches = text.match(ipv6Regex);
+            if (v6Matches) v6Matches.forEach(ip => result.add(ip));
+        };
+        scanText(decoded);
+        if (content !== decoded) scanText(content);
+        return Array.from(result);
+    }
+
+    async function scan(silentMode = false) {
+        const txt = inputArea.value;
+        let rawList = txt.split('\n').map(s => s.trim()).filter(s => s);
+        
+        if (rawList.length === 0) {
+            if(!silentMode) showToast('请输入 IP 列表', '#f87171');
+            return 0;
+        }
+
+        const ips = [...new Set(rawList)];
+        const duplicatesRemoved = rawList.length - ips.length;
+
+        let btn = null;
+        if(!silentMode) {
+             btn = document.getElementById('btnScan');
+             btn.disabled = true;
+             btn.innerHTML = '<span style="animation:spin 1s linear infinite">⚡</span> 扫描中...';
+        }
+        
+        if(!silentMode) {
+            let statusMsg = `处理 ${ips.length} 个节点...`;
+            if (duplicatesRemoved > 0) statusMsg += ` (去重 ${duplicatesRemoved})`;
+            document.getElementById('status').innerText = statusMsg;
+            document.getElementById('status').style.color = "var(--accent-primary)";
+            
+            document.getElementById('list').innerHTML = '';
+            document.getElementById('tableBox').style.display = 'none';
+            document.getElementById('emptyMsg').style.display = 'none';
+            const bottomBar = document.getElementById('bottomBar');
+            if(bottomBar) bottomBar.style.display = 'none';
+        }
+        validList = [];
+
+        const start = Date.now();
+        let validCount = 0;
+        
+        try {
+            const res = await fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({ips})
+            });
+            const json = await res.json();
+            const time = ((Date.now() - start)/1000).toFixed(2);
+
+            const good = json.data.filter(r => r.valid).sort((a,b) => a.latency - b.latency);
+
+            validList = good;
+            validCount = good.length;
+
+            if(!silentMode) {
+                const tbody = document.getElementById('list');
+                if (good.length > 0) {
+                    good.forEach((r, i) => {
+                        const tr = document.createElement('tr');
+                        tr.style.animation = `fadeIn 0.3s ease forwards ${i * 0.05}s`;
+                        tr.style.opacity = '0'; 
+                        tr.onclick = function() { copyText(r.ip + ':' + r.port); };
+                        let latClass = r.latency < 100 ? 'fast' : (r.latency < 200 ? 'mid' : 'slow');
+                        let colo = r.colo === 'UNK' ? '??' : r.colo;
+                        let pIcon = r.is_p ? '<span class="check-icon">✅</span>' : '<span class="cross-icon">×</span>';
+                        let fIcon = r.is_f ? '<span class="check-icon">✅</span>' : '<span class="cross-icon">×</span>';
+                        tr.innerHTML = `<td>${i + 1}</td><td class="ip-cell">${r.ip}:${r.port}</td><td><span class="colo-badge">${colo}</span></td><td><span class="lat-badge ${latClass}">${r.latency}ms</span></td><td>${pIcon}</td><td>${fIcon}</td>`;
+                        tbody.appendChild(tr);
+                    });
+                    document.getElementById('tableBox').style.display = 'block';
+                    const bottomBar = document.getElementById('bottomBar');
+                    if(bottomBar) bottomBar.style.display = 'block';
+                } else {
+                    document.getElementById('emptyMsg').style.display = 'block';
+                    document.getElementById('emptyMsg').innerText = "未发现符合条件的有效节点";
+                }
+                document.getElementById('status').innerText = `完成 (耗时 ${time}s)`;
+                document.getElementById('status').style.color = "#10b981";
+                document.getElementById('validCount').innerText = good.length;
+            }
+        } catch(e) {
+            if(!silentMode) {
+                showToast('请求失败', '#f87171');
+                document.getElementById('status').innerText = '错误';
+                document.getElementById('status').style.color = "#f87171";
+            }
+        }
+        
+        if(!silentMode) {
+            btn.disabled = false;
+            btn.innerHTML = '🚀 开始扫描';
+        }
+
+        return validCount;
+    }
+
+    function generateSub(type) {
+        if (validList.length === 0) return showToast("当前无有效节点", "#f87171");
+        
+        const inputHost = document.getElementById('genHost').value.trim();
+        const inputUuid = document.getElementById('genUuid').value.trim();
+        const isCustom = inputHost !== "" || inputUuid !== "";
+
+        let host, uuid;
+        
+        host = inputHost || GlobalHost;
+        uuid = inputUuid || GlobalUUID;
+
+        if (!host || !uuid) {
+            return showToast("未配置节点信息，请联系管理员", "#f87171");
+        }
+
+        const limit = parseInt(document.getElementById('genLimit').value);
+        
+        let pathPrefix = "";
+        if (isCustom) {
+            if (type === 'trojan') {
+                if (!confirm("如果你的代码不支持Trojan请生成vless订阅，是否继续？")) {
+                    return;
+                }
+            }
+            
+            if (proxyFormatSelect.value === 'custom') {
+                pathPrefix = document.getElementById('customProxyFormat').value.trim();
+            } else {
+                pathPrefix = proxyFormatSelect.value;
+            }
+        } else {
+            pathPrefix = "";
+        }
+
+        const targetList = validList.slice(0, limit);
+        let nodes = [];
+        let coloCounts = {};
+
+        const coloMap = {
+            "NRT":"JP", "KIX":"JP", "FUK":"JP", "NGO":"JP", "HND":"JP",
+            "ICN":"KR", "HKG":"HK", "TPE":"TW", "KHH":"TW", "SIN":"SG",
+            "LAX":"US", "SJC":"US", "SFO":"US", "JFK":"US", "EWR":"US", "ORD":"US", "DFW":"US", "SEA":"US", "MIA":"US", "IAD":"US", "ATL":"US", "PHX":"US", "DEN":"US", "LAS":"US",
+            "LHR":"GB", "MAN":"GB", "EDI":"GB", "AMS":"NL", "FRA":"DE", "MUC":"DE", "DUS":"DE", "HAM":"DE", "TXL":"DE", "CDG":"FR", "MRS":"FR", "LYS":"FR",
+            "YYZ":"CA", "YVR":"CA", "YUL":"CA", "SYD":"AU", "MEL":"AU", "BNE":"AU", "PER":"AU",
+            "VNO":"LT", "RIX":"LV", "TLL":"EE", "WAW":"PL", "PRG":"CZ", "VIE":"AT", "ZRH":"CH", "MAD":"ES", "BCN":"ES", "MXP":"IT", "FCO":"IT",
+            "GRU":"BR", "GIG":"BR", "EZE":"AR", "SCL":"CL", "BOG":"CO", "LIM":"PE", "JNB":"ZA", "CPT":"ZA", "DXB":"AE", "RUH":"SA", "TLV":"IL", "BOM":"IN", "DEL":"IN"
+        };
+
+        targetList.forEach((r, index) => {
+            let name = "";
+            if (currentRegionName) {
+                name = `${index + 1}、${currentRegionName}`;
+            } else {
+                let colo = r.colo || 'UNK';
+                if(coloMap[colo]) colo = coloMap[colo];
+                
+                coloCounts[colo] = (coloCounts[colo] || 0) + 1;
+                name = `${coloCounts[colo]}、${colo}`;
+            }
+            let encodedName = encodeURIComponent(name);
+            
+            let nodeAddr = r.ip;
+            if (r.ip.includes(':')) nodeAddr = `[${r.ip}]`;
+            
+            let pathVal = "";
+            if (isCustom && pathPrefix) {
+                pathVal = `${pathPrefix}${r.ip}:${r.port}`;
+            } else {
+                pathVal = `/${r.ip}:${r.port}`;
+            }
+            let encodedPath = encodeURIComponent(pathVal);
+
+            if (type === 'vless') {
+                let link = `vless://${uuid}@${nodeAddr}:${r.port}?encryption=none&security=tls&sni=${host}&fp=randomized&insecure=0&allowInsecure=0&type=ws&host=${host}&path=${encodedPath}#${encodedName}`;
+                nodes.push(link);
+            } else if (type === 'trojan') {
+                let password = uuid.split('-')[0];
+                let link = `trojan://${password}@${nodeAddr}:${r.port}?security=tls&sni=${host}&fp=randomized&insecure=0&allowInsecure=0&type=ws&host=${host}&path=${encodedPath}#${encodedName}`;
+                nodes.push(link);
+            } else if (type === 'ss') {
+                let password = `none:${uuid}`;
+                let bPass = btoa(password);
+                let pluginParams = `v2ray-plugin;mode=websocket;host=${host};path=${pathVal};tls`;
+                let encodedPluginParams = encodeURIComponent(pluginParams);
+                let link = `ss://${bPass}@${nodeAddr}:${r.port}?plugin=${encodedPluginParams}#${encodedName}`;
+                nodes.push(link);
+            }
+        });
+
+        const fullText = nodes.join('\n');
+        const base64 = btoa(fullText);
+
+        const resBox = document.getElementById('genResult');
+        resBox.value = "生成中...";
+
+        fetch(STORE_URL, {
+            method: 'POST',
+            body: base64
+        }).then(res => res.json()).then(data => {
+            if(data.id) {
+                const origin = window.location.origin;
+                const finalLink = `${origin}/${data.id}`;
+                resBox.value = finalLink;
+                copyText(finalLink);
+                showToast("订阅已生成并自动复制！", "#3b82f6");
+            }
+        }).catch(err => {
+            resBox.value = "生成失败";
+            showToast("存储失败，请确保后端服务已重启", "#f87171");
+        });
+    }
+
+    function copyGenResult() {
+        const input = document.getElementById('genResult');
+        if (input.value && input.value !== "生成中..." && input.value !== "生成失败") {
+            copyText(input.value);
+        }
+    }
+
+    function copyText(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(() => { triggerToast(text); }).catch(err => { fallbackCopy(text); });
+        } else { fallbackCopy(text); }
+    }
+
+    function fallbackCopy(text) {
+        try {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed"; textArea.style.left = "-9999px";
+            document.body.appendChild(textArea);
+            textArea.focus(); textArea.select();
+            const successful = document.execCommand('copy');
+            document.body.removeChild(textArea);
+            if (successful) triggerToast(text);
+            else showToast('复制失败', '#f87171');
+        } catch (err) { showToast('复制失败', '#f87171'); }
+    }
+
+    function triggerToast(text) {
+        const color = toastColors[Math.floor(Math.random() * toastColors.length)];
+        showToast(`已复制: ${text}`, color);
+    }
+
+    function copyAll() {
+        if (validList.length === 0) return;
+        const text = validList.map(r => `${r.ip}:${r.port}`).join('\n');
+        copyText(text);
+        showToast(`已复制 ${validList.length} 个节点`, '#10b981');
+    }
+
+    function showToast(msg, color, duration = 3000) {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.style.background = color;
+        if(msg.length > 30 && !msg.includes('节点') && !msg.includes('地区')) msg = msg.substring(0, 28) + '...';
+        toast.innerHTML = `<span>${msg}</span>`;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.classList.add('hide');
+            setTimeout(() => { if(toast.parentNode) toast.parentNode.removeChild(toast); }, 400); 
+        }, duration); 
+    }
+
+    function clearAll() {
+        inputArea.value = '';
+        currentRegionName = ""; 
+        document.getElementById('genRegionSelect').style.display = 'block';
+        document.getElementById('genStatusBox').style.display = 'none';
+        genRegionSelect.value = "";
+        
+        updateLineNumbers();
+        document.getElementById('list').innerHTML = '';
+        document.getElementById('validCount').innerText = '0';
+        document.getElementById('status').innerText = '就绪';
+        document.getElementById('status').style.color = "var(--text-secondary)";
+        
+        const bottomBar = document.getElementById('bottomBar');
+        if(bottomBar) bottomBar.style.display = 'none';
+        
+        document.getElementById('tableBox').style.display = 'none';
+        document.getElementById('emptyMsg').style.display = 'none';
+        resetManualConfig(); 
+    }
+    
+    // 强制等待页面资源加载完毕后再执行
+    window.addEventListener('load', function() {
+        initApp();
+    });
+</script>
+<style>
+@keyframes spin { 100% { transform: rotate(360deg); } }
+@keyframes fadeIn { to { opacity: 1; } }
+</style>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"version":"2024.11.0","token":"86a95e44dfb44b2a81ee4d4a49845b20","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
