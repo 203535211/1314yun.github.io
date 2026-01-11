@@ -4,13 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" sizes="256x256" href="https://favicon.im/github.com?larger=true">
-    <title>GitHub 项目管理工具 (V6.1 - Dual-Device Customizer)</title>
+    <title>GitHub 项目管理工具 (V5.26 - Pages Final)</title>
+    <!-- 引入 JSZip 用于前端解压 -->
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <style>
-        /* --- 100% 恢复原始精致布局 CSS --- */
         :root {
             --primary-color: #4a90e2;
+            --primary-hover: #357abd;
             --text-color: #ffffff;
+            --danger-color: #e74c3c;
+            --success-color: #2ecc71;
             --electric-color: #4facfe;
             --glass-bg: rgba(255, 255, 255, 0.05);
             --glass-border: rgba(255, 255, 255, 0.1);
@@ -19,388 +22,660 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: radial-gradient(125% 125% at 50% 10%, #000 40%, #1a1a2e 100%);
-            margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-color); overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text-color);
+            overflow-x: hidden;
         }
 
-        .bg-glow { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%234facfe" fill-opacity="0.05" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,149.3C960,160,1056,160,1152,138.7C1248,117,1344,75,1392,53.3L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>'); background-size: cover; pointer-events: none; z-index: 0; }
+        /* 科技感滚动条 */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
+        ::-webkit-scrollbar-thumb { background: rgba(79, 172, 254, 0.3); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(79, 172, 254, 0.6); }
+
+        .bg-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%234facfe" fill-opacity="0.05" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,149.3C960,160,1056,160,1152,138.7C1248,117,1344,75,1392,53.3L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
+            background-size: cover;
+            pointer-events: none;
+            z-index: 0;
+        }
 
         .container {
-            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px) saturate(180%); border: 1px solid var(--glass-border); padding: 18px; border-radius: 16px; box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5); width: 95%; max-width: 600px; margin: 10px auto; position: relative; z-index: 1; box-sizing: border-box; transition: all 0.4s ease;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            padding: 18px;
+            border-radius: 16px;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5);
+            width: 95%;
+            max-width: 600px;
+            margin: 10px auto;
+            position: relative;
+            z-index: 1;
+            box-sizing: border-box;
+            transition: all 0.4s ease;
         }
 
         @media (min-width: 1024px) {
-            .container { max-width: 950px; display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 22px; }
-            .pc-header { grid-column: 1 / -1; position: relative; }
+            .container {
+                max-width: 950px;
+                display: grid;
+                grid-template-columns: 320px 1fr;
+                gap: 20px;
+                padding: 22px;
+            }
+            .pc-header { grid-column: 1 / -1; }
+            .pc-left-col { display: flex; flex-direction: column; }
+            .pc-right-col { display: flex; flex-direction: column; min-width: 0; }
+            #branch-section { display: block !important; }
         }
 
-        .settings-trigger {
-            position: absolute; top: 15px; right: 15px; width: 32px; height: 32px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 100; transition: all 0.3s ease; color: var(--electric-color); font-size: 18px;
+        h1 {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            font-weight: 700;
+            background: linear-gradient(75deg, #4facfe, #00f2fe, #a974ff, #ff45da);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 10px rgba(79, 172, 254, 0.3);
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.2s ease;
         }
-        .settings-trigger:hover { background: rgba(79, 172, 254, 0.15); transform: rotate(90deg); }
+        h1:hover { transform: scale(1.02); }
 
-        /* --- 三种面板模式样式 (修复重叠 Bug) --- */
-        .panel-inline { grid-column: 1 / -1; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 15px; overflow: hidden; max-height: 0; opacity: 0; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); padding: 0 15px; display: none; }
-        .panel-inline.active-mode { display: block; }
-        .panel-inline.open { max-height: 800px; opacity: 1; padding: 15px; margin-top: 10px; border-color: rgba(79, 172, 254, 0.2); }
+        .security-tip {
+            background: rgba(79, 172, 254, 0.08);
+            border: 1px solid rgba(79, 172, 254, 0.15);
+            color: #4facfe;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            font-size: 0.82em;
+        }
 
-        .panel-popover { position: absolute; top: 55px; right: 15px; width: 280px; background: rgba(15, 15, 25, 0.95); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); z-index: 2000; display: none; opacity: 0; transform: translateY(-10px); transition: all 0.3s ease; pointer-events: none; }
-        .panel-popover.active-mode { display: none; } /* 仅在 open 时显示 */
-        .panel-popover.open { display: block; opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .electric-wrapper {
+            position: relative;
+            padding: 1.5px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.04);
+            transition: all 0.3s ease;
+        }
 
-        .panel-drawer { position: fixed; top: 0; right: -320px; width: 300px; height: 100%; background: rgba(15, 15, 25, 0.98); backdrop-filter: blur(25px); border-left: 1px solid var(--glass-border); padding: 30px 20px; z-index: 3000; transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: -10px 0 40px rgba(0,0,0,0.5); box-sizing: border-box; display: none; }
-        .panel-drawer.active-mode { display: block; }
-        .panel-drawer.open { right: 0; }
-        
-        .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 2999; }
-        .drawer-overlay.show { opacity: 1; visibility: visible; }
+        .electric-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(transparent, transparent, transparent, #4facfe, #00f2fe, #4facfe);
+            animation: rotate 4s linear infinite;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
 
-        /* 面板内容样式 */
-        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; }
-        .panel-header h2 { margin: 0; font-size: 1em; color: var(--electric-color); letter-spacing: 1px; }
-        .close-btn { cursor: pointer; font-size: 20px; color: rgba(255,255,255,0.3); }
+        .electric-wrapper.active::before,
+        .electric-wrapper:focus-within::before {
+            opacity: 1;
+        }
 
-        .setting-group { margin-bottom: 15px; }
-        .setting-group label { color: rgba(255,255,255,0.6); font-size: 0.75em; margin-bottom: 6px; display: block; font-weight: 600; text-transform: uppercase; }
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
 
-        .mode-tabs { display: flex; gap: 4px; background: rgba(255, 255, 255, 0.03); padding: 3px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05); }
-        .mode-tab-btn { flex: 1; padding: 6px; text-align: center; cursor: pointer; border: 1px solid transparent; background: transparent; font-size: 0.7em; color: rgba(255, 255, 255, 0.4); border-radius: 6px; transition: all 0.3s ease; }
-        .mode-tab-btn.active { color: #ffffff; background: rgba(79, 172, 254, 0.15); border-color: rgba(79, 172, 254, 0.2); }
+        .electric-inner {
+            background: #0f0f0f;
+            border-radius: 9px;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
 
-        /* 核心 UI 样式 (100% 还原) */
-        h1 { text-align: center; margin-bottom: 15px; font-size: 1.5em; font-weight: 700; background: linear-gradient(75deg, #4facfe, #00f2fe, #a974ff, #ff45da); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: 0 2px 10px rgba(79, 172, 254, 0.3); user-select: none; }
-        .security-tip { background: rgba(79, 172, 254, 0.08); border: 1px solid rgba(79, 172, 254, 0.15); color: #4facfe; padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 0.82em; }
-        .electric-wrapper { position: relative; padding: 1.5px; border-radius: 10px; margin-bottom: 10px; overflow: hidden; background: rgba(255, 255, 255, 0.04); transition: all 0.3s ease; }
-        .electric-wrapper::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: conic-gradient(transparent, transparent, transparent, #4facfe, #00f2fe, #4facfe); animation: rotate 4s linear infinite; opacity: 0; transition: opacity 0.3s ease; z-index: -1; }
-        .electric-wrapper.active::before, .electric-wrapper:focus-within::before { opacity: 1; }
-        @keyframes rotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .electric-inner { background: #0f0f0f; border-radius: 9px; width: 100%; height: 100%; display: block; }
-        input[type="text"], input[type="password"], input[type="file"] { width: 100%; padding: 10px 12px; border: none; border-radius: 9px; box-sizing: border-box; font-size: 0.92em; background: rgba(255, 255, 255, 0.03); color: #ffffff; outline: none; }
-        .password-wrapper { position: relative; display: flex; align-items: center; width: 100%; }
-        .toggle-password { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: rgba(255, 255, 255, 0.3); cursor: pointer; font-size: 0.85em; padding: 4px; z-index: 20; }
-        label { display: block; margin-bottom: 5px; font-weight: 600; color: rgba(255, 255, 255, 0.7); font-size: 0.85em; }
-        .tabs { display: flex; margin-bottom: 12px; background: rgba(255, 255, 255, 0.04); border-radius: 10px; padding: 4px; }
-        .tab-button { flex-grow: 1; padding: 8px 0; text-align: center; cursor: pointer; border: none; background: transparent; font-size: 0.88em; color: rgba(255, 255, 255, 0.5); border-radius: 7px; transition: all 0.3s ease; font-weight: 600; }
-        .tab-button.active { color: #ffffff; background: rgba(79, 172, 254, 0.15); }
-        .tab-content { display: none; padding: 2px 0; }
+        input[type="text"], input[type="password"], input[type="file"], textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: none;
+            border-radius: 9px;
+            box-sizing: border-box;
+            font-size: 0.92em;
+            background: rgba(255, 255, 255, 0.03);
+            color: #ffffff;
+            outline: none;
+        }
+
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            font-size: 0.85em;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.85em;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 10px;
+            padding: 4px;
+        }
+
+        .tab-button {
+            flex-grow: 1;
+            padding: 8px 0;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-size: 0.88em;
+            color: rgba(255, 255, 255, 0.5);
+            border-radius: 7px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .tab-button.active {
+            color: #ffffff;
+            background: rgba(79, 172, 254, 0.15);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 2px 0;
+        }
+
         .tab-content.active { display: block; }
-        button.action-button { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 12px 18px; border: none; border-radius: 9px; cursor: pointer; width: 100%; font-size: 1em; font-weight: bold; transition: all 0.3s ease; position: relative; overflow: hidden; }
-        button.action-button .progress-bg { position: absolute; left: 0; top: 0; height: 100%; width: 0%; background: rgba(255, 255, 255, 0.2); transition: width 0.3s ease; z-index: 0; }
+
+        button.action-button {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 9px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        button.action-button:hover:not(:disabled) {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+        }
+
+        button.action-button .progress-bg {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: width 0.3s ease;
+            z-index: 0;
+        }
+
         button.action-button .button-text { position: relative; z-index: 1; }
-        button.danger-button { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); }
-        #log-output { background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 12px; max-height: 240px; overflow-y: auto; white-space: pre-wrap; font-family: 'Consolas', 'Monaco', monospace; font-size: 0.8em; color: #00f2fe; margin-top: 8px; }
+
+        button.danger-button {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        #log-output {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 12px;
+            max-height: 240px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.8em;
+            color: #00f2fe;
+            margin-top: 8px;
+        }
+
+        #progress-container {
+            margin-bottom: 10px;
+            height: 10px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 5px;
+            display: none;
+            position: relative;
+        }
+
+        #progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #4facfe, #00f2fe);
+            transition: width 0.3s ease;
+            border-radius: 5px;
+        }
+
+        #progress-text {
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 0.75em;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .log-title {
+            font-size: 0.82em;
+            margin-top: 12px;
+            margin-bottom: 5px;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 600;
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 12px; width: 98%; margin: 5px auto; border-radius: 12px; }
+            h1 { font-size: 1.3em; margin-bottom: 10px; }
+            .security-tip { font-size: 0.75em; padding: 6px 10px; margin-bottom: 10px; }
+            label { font-size: 0.8em; margin-bottom: 4px; }
+            input[type="text"], input[type="password"], input[type="file"], textarea { padding: 8px 10px; font-size: 0.85em; }
+            .tab-button { font-size: 0.82em; padding: 6px 0; }
+            button.action-button { padding: 10px 15px; font-size: 0.95em; }
+            #log-output { max-height: 180px; font-size: 0.75em; }
+        }
     </style>
 </head>
 <body>
     <div class="bg-glow"></div>
-    <div class="drawer-overlay" id="drawerOverlay" onclick="togglePanel()"></div>
-
     <div class="container">
-        <div class="settings-trigger" onclick="togglePanel()" title="偏好设置">⚙️</div>
-
         <div class="pc-header">
-            <h1>GitHub 项目管理工具</h1>
-            
-            <!-- 1. 内嵌面板 -->
-            <div class="panel-inline" id="panelInline">
-                <div class="panel-header"><h2>⚙️ 设置中心 (内嵌)</h2></div>
-                <div id="settingsContentInline"></div>
-            </div>
-
-            <!-- 2. 悬浮面板 -->
-            <div class="panel-popover" id="panelPopover">
-                <div class="panel-header"><h2>⚙️ 设置中心 (悬浮)</h2></div>
-                <div id="settingsContentPopover"></div>
-            </div>
-
+            <h1 onclick="toggleBranchVisibility()" title="点击展开/隐藏分支设置">GitHub 项目管理工具</h1>
             <div class="security-tip"><strong>安全提示：</strong> 您的 PAT 和仓库 URL 将保存在浏览器本地。</div>
         </div>
 
-        <!-- 3. 侧边栏面板 -->
-        <div class="panel-drawer" id="panelDrawer">
-            <div class="panel-header"><h2>⚙️ 设置中心 (侧边栏)</h2><div class="close-btn" onclick="togglePanel()">×</div></div>
-            <div id="settingsContentDrawer"></div>
-        </div>
-
         <div class="pc-left-col">
-            <label>GitHub 个人访问令牌 (PAT)</label>
-            <div class="electric-wrapper"><div class="electric-inner"><div class="password-wrapper">
-                <input type="password" id="pat" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
-                <button type="button" class="toggle-password" onclick="togglePasswordVisibility()"><span id="toggleIcon">👁️</span></button>
-            </div></div></div>
-            <label>GitHub 仓库 URL (HTTPS)</label>
-            <div class="electric-wrapper"><div class="electric-inner"><input type="text" id="repo_url" placeholder="https://github.com/user/repo.git"></div></div>
-            <input type="hidden" id="branch" value="main">
+            <label for="pat">GitHub 个人访问令牌 (PAT)</label>
+            <div class="electric-wrapper">
+                <div class="electric-inner">
+                    <div class="password-wrapper">
+                        <input type="password" id="pat" name="pat" form="uploadForm" placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" required oninvalid="this.setCustomValidity('请填写个人访问令牌')" oninput="this.setCustomValidity('')">
+                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility()" title="显示/隐藏密码">
+                            <span id="toggleIcon">👁️</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <label for="repo_url">GitHub 仓库 URL (HTTPS)</label>
+            <div class="electric-wrapper"><div class="electric-inner"><input type="text" id="repo_url" name="repo_url" form="uploadForm" placeholder="https://github.com/your-username/your-repo.git" required oninvalid="this.setCustomValidity('请填写仓库 URL')" oninput="this.setCustomValidity('')"></div></div>
+
+            <div id="branch-section" style="display: none;">
+                <label for="branch">GitHub 分支 (Branch)</label>
+                <div class="electric-wrapper"><div class="electric-inner"><input type="text" id="branch" name="branch" form="uploadForm" placeholder="例如: master 或 main" value="main" required oninvalid="this.setCustomValidity('请填写分支名称')" oninput="this.setCustomValidity('')"></div></div>
+            </div>
         </div>
 
         <div class="pc-right-col">
             <div class="tabs">
-                <button class="tab-button active" data-tab="upload">上传</button>
-                <button class="tab-button" data-tab="delete">删除</button>
-                <button class="tab-button" data-tab="clear">清空</button>
+                <button class="tab-button active" data-tab="upload">项目/文件上传</button>
+                <button class="tab-button" data-tab="delete">文件删除</button>
+                <button class="tab-button" data-tab="clear">清空仓库</button>
             </div>
+
             <div id="upload" class="tab-content active">
                 <form id="uploadForm">
-                    <label>提交信息</label>
-                    <div class="electric-wrapper"><div class="electric-inner"><input type="text" id="commit_message_upload" value="Automated push"></div></div>
-                    <label>选择文件/ZIP</label>
-                    <div class="electric-wrapper"><div class="electric-inner"><input type="file" id="file_to_upload" multiple></div></div>
-                    <label>目标子目录</label>
-                    <div class="electric-wrapper"><div class="electric-inner"><input type="text" id="target_subdir" placeholder="根目录"></div></div>
-                    <input type="checkbox" id="fast_mode" checked style="display:none">
-                    <button type="submit" class="action-button" id="uploadBtn"><div class="progress-bg" id="uploadProgressBg"></div><span class="button-text" id="uploadBtnText">上传并推送</span></button>
+                    <label for="commit_message_upload">提交信息 (Commit Message)</label>
+                    <div class="electric-wrapper"><div class="electric-inner"><input type="text" id="commit_message_upload" name="commit_message" value="Automated push from web uploader" placeholder="请填写上传更新说明" required></div></div>
+                    <label for="file_to_upload">选择项目 ZIP 压缩包 或 单个文件</label>
+                    <div class="electric-wrapper"><div class="electric-inner"><input type="file" id="file_to_upload" name="file_to_upload" multiple required oninvalid="this.setCustomValidity('请选择要上传的文件')" oninput="this.setCustomValidity('')"></div></div>
+                    <label for="target_subdir">目标子目录 (可选)</label>
+                    <div class="electric-wrapper"><div class="electric-inner"><input type="text" id="target_subdir" name="target_subdir" placeholder="例如: client/src (留空则上传到根目录)"></div></div>
+                    <button type="submit" class="action-button" id="uploadBtn"><div class="progress-bg" id="uploadProgressBg"></div><span class="button-text" id="uploadBtnText">上传并推送到 GitHub</span></button>
                 </form>
             </div>
+
             <div id="delete" class="tab-content">
                 <form id="deleteForm">
-                    <label>文件路径</label>
-                    <div class="electric-wrapper"><div class="electric-inner"><input type="text" id="file_to_delete" placeholder="path/to/file"></div></div>
-                    <button type="submit" class="action-button danger-button">删除文件</button>
+                    <label for="commit_message_delete">提交信息 (Commit Message)</label>
+                    <div class="electric-wrapper"><div class="electric-inner"><input type="text" id="commit_message_delete" name="commit_message" value="Delete file from web tool" placeholder="请填写删除更新说明" required></div></div>
+                    <label for="file_to_delete">要删除的文件路径 (相对于仓库根目录)</label>
+                    <div class="electric-wrapper"><div class="electric-inner"><input type="text" id="file_to_delete" name="file_to_delete" placeholder="例如: images/old-logo.png" required></div></div>
+                    <button type="submit" class="action-button danger-button" id="deleteBtn"><div class="progress-bg" id="deleteProgressBg"></div><span class="button-text" id="deleteBtnText">从 GitHub 删除文件</span></button>
                 </form>
             </div>
+
             <div id="clear" class="tab-content">
-                <button id="clearBtn" class="action-button danger-button">确认极速清空仓库</button>
+                <div class="security-tip" style="background: rgba(231, 76, 60, 0.08); border-color: rgba(231, 76, 60, 0.15); color: #e74c3c;">
+                    <strong>警告：</strong> 此操作将清空 GitHub 仓库中的所有内容。此操作不可逆！
+                </div>
+                <form id="clearForm">
+                    <label for="commit_message_clear">提交信息 (Commit Message)</label>
+                    <div class="electric-wrapper"><div class="electric-inner"><input type="text" id="commit_message_clear" name="commit_message" value="Clear repository from web tool" placeholder="请填写清空更新说明" required></div></div>
+                    <button type="submit" class="action-button danger-button" id="clearBtn"><div class="progress-bg" id="clearProgressBg"></div><span class="button-text" id="clearBtnText">确认清空 GitHub 仓库</span></button>
+                </form>
             </div>
-            <div id="log-output">等待操作...</div>
+
+            <div style="margin-top: 10px;">
+                <div id="progress-container"><div id="progress-bar"></div><div id="progress-text">0%</div></div>
+                <div class="log-title">操作日志:</div>
+                <div id="log-output">等待操作...</div>
+            </div>
         </div>
     </div>
 
-    <!-- 设置内容模板 -->
-    <template id="settingsTemplate">
-        <div class="setting-group">
-            <label>默认上传分支</label>
-            <div class="electric-wrapper"><div class="electric-inner"><input type="text" class="branch-setting" placeholder="main"></div></div>
-        </div>
-        <div class="setting-group">
-            <label>上传模式</label>
-            <div class="mode-tabs">
-                <div class="mode-tab-btn" data-mode="tree">极速 (Tree)</div>
-                <div class="mode-tab-btn" data-mode="single">逐个 (Single)</div>
-            </div>
-        </div>
-        <div class="setting-group">
-            <label>电脑端显示模式</label>
-            <div class="mode-tabs">
-                <div class="mode-tab-btn" data-ui-pc="inline">内嵌</div>
-                <div class="mode-tab-btn" data-ui-pc="popover">悬浮</div>
-                <div class="mode-tab-btn" data-ui-pc="drawer">侧边栏</div>
-            </div>
-        </div>
-        <div class="setting-group">
-            <label>手机端显示模式</label>
-            <div class="mode-tabs">
-                <div class="mode-tab-btn" data-ui-mobile="inline">内嵌</div>
-                <div class="mode-tab-btn" data-ui-mobile="popover">悬浮</div>
-                <div class="mode-tab-btn" data-ui-mobile="drawer">侧边栏</div>
-            </div>
-        </div>
-    </template>
-
     <script>
-        // 核心配置管理
-        const config = {
-            get pat() { return localStorage.getItem('github_pat') || ''; },
-            get repoUrl() { return localStorage.getItem('github_repo_url') || ''; },
-            get branch() { return localStorage.getItem('github_branch') || 'main'; },
-            get uploadMode() { return localStorage.getItem('upload_mode') || 'tree'; },
-            get uiModePc() { return localStorage.getItem('ui_mode_pc') || 'inline'; },
-            get uiModeMobile() { return localStorage.getItem('ui_mode_mobile') || 'inline'; },
-            get isMobile() { return window.innerWidth < 1024; },
-            get currentUiMode() { return this.isMobile ? this.uiModeMobile : this.uiModePc; }
-        };
+        const patInput = document.getElementById('pat');
+        const repoUrlInput = document.getElementById('repo_url');
+        const branchInput = document.getElementById('branch');
+        const logOutput = document.getElementById('log-output');
+        const progressBarContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
 
-        function togglePanel() {
-            const mode = config.currentUiMode;
-            const panelId = 'panel' + mode.charAt(0).toUpperCase() + mode.slice(1);
-            const panel = document.getElementById(panelId);
-            const overlay = document.getElementById('drawerOverlay');
-            
-            // 关闭所有其他面板
-            ['panelInline', 'panelPopover', 'panelDrawer'].forEach(id => {
-                if (id !== panelId) document.getElementById(id).classList.remove('open');
+        // Tab 切换
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                button.classList.add('active');
+                document.getElementById(button.dataset.tab).classList.add('active');
             });
+        });
 
-            const isOpen = panel.classList.contains('open');
-            if (isOpen) {
-                panel.classList.remove('open');
-                overlay.classList.remove('show');
-            } else {
-                panel.classList.add('open');
-                if (mode === 'drawer') overlay.classList.add('show');
+        // 电流边框激活效果
+        function updateWrapperState(input) {
+            const wrapper = input.closest('.electric-wrapper');
+            if (wrapper) {
+                if (input.value.trim() !== '') wrapper.classList.add('active');
+                else wrapper.classList.remove('active');
             }
         }
 
-        function renderSettings() {
-            const template = document.getElementById('settingsTemplate');
-            ['Inline', 'Popover', 'Drawer'].forEach(suffix => {
-                const container = document.getElementById('settingsContent' + suffix);
-                container.innerHTML = '';
-                container.appendChild(template.content.cloneNode(true));
-                
-                // 分支设置
-                const branchInput = container.querySelector('.branch-setting');
-                branchInput.value = config.branch;
-                branchInput.onchange = (e) => {
-                    localStorage.setItem('github_branch', e.target.value);
-                    document.getElementById('branch').value = e.target.value;
-                    renderSettings();
-                };
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', () => updateWrapperState(input));
+        });
 
-                // 上传模式
-                container.querySelectorAll('[data-mode]').forEach(btn => {
-                    if (btn.dataset.mode === config.uploadMode) btn.classList.add('active');
-                    btn.onclick = () => {
-                        localStorage.setItem('upload_mode', btn.dataset.mode);
-                        document.getElementById('fast_mode').checked = (btn.dataset.mode === 'tree');
-                        renderSettings();
-                    };
-                });
-
-                // 电脑端 UI 模式
-                container.querySelectorAll('[data-ui-pc]').forEach(btn => {
-                    if (btn.dataset.uiPc === config.uiModePc) btn.classList.add('active');
-                    btn.onclick = () => {
-                        localStorage.setItem('ui_mode_pc', btn.dataset.uiPc);
-                        applyUiMode();
-                        renderSettings();
-                    };
-                });
-
-                // 手机端 UI 模式
-                container.querySelectorAll('[data-ui-mobile]').forEach(btn => {
-                    if (btn.dataset.uiMobile === config.uiModeMobile) btn.classList.add('active');
-                    btn.onclick = () => {
-                        localStorage.setItem('ui_mode_mobile', btn.dataset.uiMobile);
-                        applyUiMode();
-                        renderSettings();
-                    };
-                });
-            });
+        function loadConfig() {
+            patInput.value = localStorage.getItem('github_pat') || '';
+            repoUrlInput.value = localStorage.getItem('github_repo_url') || '';
+            branchInput.value = localStorage.getItem('github_branch') || 'main';
+            document.querySelectorAll('input').forEach(input => updateWrapperState(input));
         }
 
-        function applyUiMode() {
-            const mode = config.currentUiMode;
-            // 移除所有 active-mode 类
-            ['panelInline', 'panelPopover', 'panelDrawer'].forEach(id => {
-                document.getElementById(id).classList.remove('active-mode', 'open');
-            });
-            document.getElementById('drawerOverlay').classList.remove('show');
-            
-            // 为当前模式添加 active-mode
-            const activeId = 'panel' + mode.charAt(0).toUpperCase() + mode.slice(1);
-            document.getElementById(activeId).classList.add('active-mode');
+        function saveConfig() {
+            localStorage.setItem('github_pat', patInput.value);
+            localStorage.setItem('github_repo_url', repoUrlInput.value);
+            localStorage.setItem('github_branch', branchInput.value);
         }
 
-        // 初始化
-        window.addEventListener('resize', applyUiMode);
-        document.getElementById('pat').value = config.pat;
-        document.getElementById('repo_url').value = config.repoUrl;
-        document.getElementById('branch').value = config.branch;
-        document.getElementById('fast_mode').checked = (config.uploadMode === 'tree');
-        
-        applyUiMode();
-        renderSettings();
+        function toggleBranchVisibility() {
+            if (window.innerWidth < 1024) {
+                const branchSection = document.getElementById('branch-section');
+                branchSection.style.display = branchSection.style.display === 'none' ? 'block' : 'none';
+            }
+        }
 
-        // 业务逻辑 (上传、删除、清空)
         function addLog(msg, color = '#00f2fe') {
-            const log = document.getElementById('log-output');
-            log.innerHTML += `<span style="color:${color}">${msg}</span>\n`;
-            log.scrollTop = log.scrollHeight;
+            const span = document.createElement('span');
+            span.style.color = color;
+            span.innerText = msg + '\n';
+            logOutput.appendChild(span);
+            logOutput.scrollTop = logOutput.scrollHeight;
         }
 
         async function callApi(formData) {
-            const res = await fetch('/process', { method: 'POST', body: formData });
-            const data = await res.json();
-            if (data.error) throw new Error(data.error);
-            return data;
+            const response = await fetch('/process', {
+                method: 'POST',
+                body: formData
+            });
+            
+            // 检查响应状态
+            if (!response.ok) {
+                throw new Error(`HTTP错误: ${response.status} ${response.statusText}`);
+            }
+            
+            // 检查响应内容类型
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text();
+                throw new Error(`服务器返回非JSON响应: ${text.substring(0, 100)}`);
+            }
+            
+            // 尝试解析JSON
+            try {
+                return await response.json();
+            } catch (err) {
+                throw new Error(`JSON解析失败: ${err.message}`);
+            }
         }
 
-        document.getElementById('uploadForm').onsubmit = async (e) => {
+        // --- 核心上传逻辑 ---
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            patInput.setAttribute('form', 'uploadForm');
+            repoUrlInput.setAttribute('form', 'uploadForm');
+            branchInput.setAttribute('form', 'uploadForm');
+
+            if (!document.getElementById('uploadForm').checkValidity()) {
+                document.getElementById('uploadForm').reportValidity();
+                return;
+            }
+
+            const files = document.getElementById('file_to_upload').files;
+            const pat = patInput.value;
+            const repoUrl = repoUrlInput.value;
+            const branch = branchInput.value;
+            const commitMessage = document.getElementById('commit_message_upload').value;
+            const targetSubdir = document.getElementById('target_subdir').value;
+
+            saveConfig();
+            logOutput.innerHTML = '';
+            addLog('🚀 开始处理上传任务...');
+            
             const btn = document.getElementById('uploadBtn');
+            const btnText = document.getElementById('uploadBtnText');
             const progressBg = document.getElementById('uploadProgressBg');
             btn.disabled = true;
-            addLog('🚀 开始上传任务...');
-            
-            try {
-                localStorage.setItem('github_pat', document.getElementById('pat').value);
-                localStorage.setItem('github_repo_url', document.getElementById('repo_url').value);
 
-                const files = document.getElementById('file_to_upload').files;
+            try {
                 let allFiles = [];
                 for (const file of files) {
                     if (file.name.endsWith('.zip')) {
+                        addLog(`📦 正在解压: ${file.name}...`);
                         const zip = await JSZip.loadAsync(file);
-                        for (const [path, entry] of Object.entries(zip.files)) {
-                            if (!entry.dir) allFiles.push({ path, content: await entry.async('blob') });
+                        const entries = Object.entries(zip.files).filter(([_, entry]) => !entry.dir);
+                        
+                        // 自动检测并剥离顶层文件夹前缀
+                        let commonPrefix = "";
+                        if (entries.length > 0) {
+                            const firstPath = entries[0][0];
+                            const firstSlashIndex = firstPath.indexOf('/');
+                            if (firstSlashIndex !== -1) {
+                                const potentialPrefix = firstPath.substring(0, firstSlashIndex + 1);
+                                const allHavePrefix = entries.every(([path]) => path.startsWith(potentialPrefix));
+                                if (allHavePrefix) commonPrefix = potentialPrefix;
+                            }
+                        }
+
+                        for (const [path, zipEntry] of entries) {
+                            const content = await zipEntry.async('blob');
+                            const cleanPath = commonPrefix ? path.substring(commonPrefix.length) : path;
+                            allFiles.push({ path: cleanPath, content });
                         }
                     } else {
                         allFiles.push({ path: file.name, content: file });
                     }
                 }
 
-                const prepared = [];
+                addLog(`📂 正在准备批量上传 ${allFiles.length} 个文件...`);
+                
+                // 辅助函数：将 Blob 转换为 Base64
+                const blobToBase64 = (blob) => new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result.split(',')[1]);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+
+                const preparedFiles = [];
                 for (let i = 0; i < allFiles.length; i++) {
-                    const base64 = await new Promise(r => {
-                        const reader = new FileReader();
-                        reader.onload = () => r(reader.result.split(',')[1]);
-                        reader.readAsDataURL(allFiles[i].content);
-                    });
-                    prepared.push({ path: allFiles[i].path, content: base64 });
-                    progressBg.style.width = `${((i+1)/allFiles.length)*50}%`;
+                    const fileObj = allFiles[i];
+                    const fullPath = targetSubdir ? `${targetSubdir.replace(/\/$/, '')}/${fileObj.path}` : fileObj.path;
+                    
+                    const base64 = await blobToBase64(fileObj.content);
+                    preparedFiles.push({ path: fullPath, content: base64 });
+                    
+                    const percent = Math.round(((i + 1) / allFiles.length) * 50); // 准备阶段占 50%
+                    btnText.innerText = `准备中: ${percent}%`;
+                    progressBg.style.width = `${percent}%`;
                 }
+
+                addLog(`🚀 正在通过 Tree API 一次性提交所有文件...`);
+                btnText.innerText = `提交中...`;
+                progressBg.style.width = `75%`;
 
                 const formData = new FormData();
-                formData.append('pat', config.pat);
-                formData.append('repo_url', config.repoUrl);
-                formData.append('branch', config.branch);
-                formData.append('commit_message', document.getElementById('commit_message_upload').value);
-                
-                if (config.uploadMode === 'tree') {
-                    formData.append('action', 'upload_batch');
-                    formData.append('files', JSON.stringify(prepared));
-                    const res = await callApi(formData);
-                    addLog(res.message, '#2ecc71');
+                formData.append('action', 'upload_batch');
+                formData.append('pat', pat);
+                formData.append('repo_url', repoUrl);
+                formData.append('branch', branch);
+                formData.append('commit_message', commitMessage);
+                formData.append('files', JSON.stringify(preparedFiles));
+
+                const res = await callApi(formData);
+                if (res.status === 'success') {
+                    progressBg.style.width = `100%`;
+                    addLog(`✅ ${res.message}`, '#2ecc71');
+                    addLog(`✨ 任务完成！所有文件已通过单个 Commit 提交。`, '#2ecc71');
                 } else {
-                    for (const f of prepared) {
-                        const fd = new FormData();
-                        fd.append('action', 'upload_single');
-                        fd.append('pat', config.pat);
-                        fd.append('repo_url', config.repoUrl);
-                        fd.append('branch', config.branch);
-                        fd.append('path', f.path);
-                        fd.append('file', new Blob([atob(f.content)], {type:'application/octet-stream'}));
-                        await callApi(fd);
-                        addLog(`✅ 已上传: ${f.path}`, '#2ecc71');
-                    }
+                    throw new Error(res.error);
                 }
             } catch (err) {
-                addLog('❌ 错误: ' + err.message, '#ff6b6b');
+                addLog(`💥 发生错误: ${err.message}`, '#ff6b6b');
             } finally {
                 btn.disabled = false;
-                progressBg.style.width = '0';
+                btnText.innerText = '上传并推送到 GitHub';
+                progressBg.style.width = '0%';
             }
-        };
+        });
 
-        document.getElementById('clearBtn').onclick = async () => {
-            if (!confirm('确定清空仓库？')) return;
-            addLog('🔥 正在清空...');
-            try {
-                const fd = new FormData();
-                fd.append('action', 'clear');
-                fd.append('pat', config.pat);
-                fd.append('repo_url', config.repoUrl);
-                fd.append('branch', config.branch);
-                const res = await callApi(fd);
-                addLog(res.message, '#2ecc71');
-            } catch (err) {
-                addLog('❌ 失败: ' + err.message, '#ff6b6b');
+        // --- 删除逻辑 ---
+        document.getElementById('deleteForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            patInput.setAttribute('form', 'deleteForm');
+            repoUrlInput.setAttribute('form', 'deleteForm');
+            branchInput.setAttribute('form', 'deleteForm');
+
+            if (!document.getElementById('deleteForm').checkValidity()) {
+                document.getElementById('deleteForm').reportValidity();
+                return;
             }
-        };
+
+            saveConfig();
+            const btn = document.getElementById('deleteBtn');
+            btn.disabled = true;
+            addLog(`🗑️ 正在尝试从 ${branchInput.value} 分支删除文件...`);
+
+            const formData = new FormData();
+            formData.append('action', 'delete');
+            formData.append('pat', patInput.value);
+            formData.append('repo_url', repoUrlInput.value);
+            formData.append('branch', branchInput.value);
+            formData.append('file_to_delete', document.getElementById('file_to_delete').value);
+            formData.append('commit_message', document.getElementById('commit_message_delete').value);
+
+            const res = await callApi(formData);
+            addLog(res.message || res.error, res.status === 'success' ? '#2ecc71' : '#ff6b6b');
+            btn.disabled = false;
+        });
+
+        // --- 清空逻辑 ---
+        document.getElementById('clearForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            patInput.setAttribute('form', 'clearForm');
+            repoUrlInput.setAttribute('form', 'clearForm');
+            branchInput.setAttribute('form', 'clearForm');
+
+            if (!document.getElementById('clearForm').checkValidity()) {
+                document.getElementById('clearForm').reportValidity();
+                return;
+            }
+
+            saveConfig();
+            const btn = document.getElementById('clearBtn');
+            btn.disabled = true;
+            addLog(`⚠️ 正在尝试清空 ${branchInput.value} 分支仓库内容...`);
+
+            const formData = new FormData();
+            formData.append('action', 'clear');
+            formData.append('pat', patInput.value);
+            formData.append('repo_url', repoUrlInput.value);
+            formData.append('branch', branchInput.value);
+            formData.append('commit_message', document.getElementById('commit_message_clear').value);
+
+            const res = await callApi(formData);
+            addLog(res.message || res.error, res.status === 'success' ? '#2ecc71' : '#ff6b6b');
+            btn.disabled = false;
+        });
 
         function togglePasswordVisibility() {
-            const p = document.getElementById('pat');
-            p.type = p.type === 'password' ? 'text' : 'password';
+            const patInput = document.getElementById('pat');
+            const toggleIcon = document.getElementById('toggleIcon');
+            if (patInput.type === 'password') {
+                patInput.type = 'text';
+                toggleIcon.innerText = '🚫';
+            } else {
+                patInput.type = 'password';
+                toggleIcon.innerText = '👁️';
+            }
         }
+
+        loadConfig();
     </script>
 </body>
 </html>
